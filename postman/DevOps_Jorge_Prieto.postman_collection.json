@@ -1,0 +1,644 @@
+{
+  "info": {
+    "name": "Ejercicio DevOps - Jorge Prieto",
+    "description": "Colección de estudio y validación de POST /DevOps. Importa un entorno privado generado por scripts/export_postman_env.py. El JWT HS256 se genera con Web Crypto y un jti nuevo antes de cada petición. Requiere Postman actualizado. HTTPS público conserva la validación de certificados. Para el certificado autofirmado de localhost consulta postman/README.md. TRACE es solo diagnóstico: no acredita el cuerpo literal ERROR.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const base = pm.environment.get('base_url');",
+          "const secret = pm.environment.get('jwt_secret');",
+          "if (!base || !secret || !pm.environment.get('api_key')) {",
+          "    throw new Error('Importa y selecciona un entorno privado de DevOps con base_url, api_key y jwt_secret.');",
+          "}",
+          "if (!base.startsWith('https://')) throw new Error('La URL debe utilizar HTTPS.');",
+          "function encode(bytes) {",
+          "    return btoa(String.fromCharCode(...bytes)).replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');",
+          "}",
+          "const utf8 = new TextEncoder();",
+          "const now = Math.floor(Date.now() / 1000);",
+          "const header = encode(utf8.encode(JSON.stringify({alg: 'HS256', typ: 'JWT'})));",
+          "const payload = encode(utf8.encode(JSON.stringify({",
+          "    iss: 'devops-candidate', aud: 'devops-api', sub: 'postman',",
+          "    iat: now, nbf: now, exp: now + 300,",
+          "    jti: pm.variables.replaceIn('{{$guid}}').replace(/-/g, '')",
+          "})));",
+          "const unsigned = header + '.' + payload;",
+          "const key = await crypto.subtle.importKey('raw', utf8.encode(secret), {name: 'HMAC', hash: 'SHA-256'}, false, ['sign']);",
+          "const signature = await crypto.subtle.sign('HMAC', key, utf8.encode(unsigned));",
+          "pm.variables.set('jwt', unsigned + '.' + encode(new Uint8Array(signature)));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Petición válida",
+      "item": [
+        {
+          "name": "POST - Enviar mensaje (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": "Pulsa Send. Se genera automáticamente un JWT nuevo para cada envío. No necesitas editar los encabezados.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"This is a test\",\n  \"to\": \"Juan Perez\",\n  \"from\": \"Rita Asturia\",\n  \"timeToLifeSec\": 45\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 200', () => pm.expect(pm.response.code).to.eql(200));",
+                  "pm.test('Respuesta exacta del ejercicio', () => pm.expect(pm.response.json()).to.eql({message: 'Hello Juan Perez your message will be sent'}));",
+                  "pm.test('Respuesta sin caché', () => pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'));",
+                  "pm.test('Protección contra detección de contenido', () => pm.expect(pm.response.headers.get('X-Content-Type-Options')).to.eql('nosniff'));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Autenticación y JWT",
+      "item": [
+        {
+          "name": "API Key incorrecta (401 o 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "incorrecta"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"This is a test\",\n  \"to\": \"Juan Perez\",\n  \"from\": \"Rita Asturia\",\n  \"timeToLifeSec\": 45\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Credencial rechazada: 401 o 403', () => pm.expect(pm.response.code).to.be.oneOf([401, 403]));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "JWT inválido (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "token-invalido"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"This is a test\",\n  \"to\": \"Juan Perez\",\n  \"from\": \"Rita Asturia\",\n  \"timeToLifeSec\": 45\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 401', () => pm.expect(pm.response.code).to.eql(401));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "JWT reutilizado (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": "Envía primero una petición válida desde el script y repite el JWT en esta petición. Debe devolver 409. No depende de otra petición de la colección.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"This is a test\",\n  \"to\": \"Juan Perez\",\n  \"from\": \"Rita Asturia\",\n  \"timeToLifeSec\": 45\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Consume primero el mismo JWT: este caso funciona también al pulsar Send de forma individual.",
+                  "const first = await new Promise((resolve, reject) => pm.sendRequest({",
+                  "    url: pm.environment.get('base_url').replace(/\\/$/, '') + '/DevOps',",
+                  "    method: 'POST',",
+                  "    header: {'Content-Type': 'application/json', 'X-Parse-REST-API-Key': pm.environment.get('api_key'), 'X-JWT-KWY': pm.variables.get('jwt')},",
+                  "    body: {mode: 'raw', raw: JSON.stringify({message:'This is a test', to:'Juan Perez', from:'Rita Asturia', timeToLifeSec:45})}",
+                  "}, (error, response) => error ? reject(error) : resolve(response)));",
+                  "pm.test('Primera utilización del JWT aceptada', () => pm.expect(first.code).to.eql(200));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 409', () => pm.expect(pm.response.code).to.eql(409));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Validación del cuerpo",
+      "item": [
+        {
+          "name": "Destinatario vacío (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"This is a test\",\n  \"to\": \"\",\n  \"from\": \"Rita Asturia\",\n  \"timeToLifeSec\": 45\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 400', () => pm.expect(pm.response.code).to.eql(400));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Tiempo de vida inválido (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"This is a test\",\n  \"to\": \"Juan Perez\",\n  \"from\": \"Rita Asturia\",\n  \"timeToLifeSec\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 400', () => pm.expect(pm.response.code).to.eql(400));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "JSON mal formado (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"message\":",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 400', () => pm.expect(pm.response.code).to.eql(400));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Content-Type no admitido (415)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"This is a test\",\n  \"to\": \"Juan Perez\",\n  \"from\": \"Rita Asturia\",\n  \"timeToLifeSec\": 45\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 415', () => pm.expect(pm.response.code).to.eql(415));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Métodos HTTP",
+      "item": [
+        {
+          "name": "GET - Método no permitido (405 y ERROR)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 405', () => pm.expect(pm.response.code).to.eql(405));",
+                  "pm.test('Cuerpo literal ERROR', () => pm.expect(pm.response.text()).to.eql('ERROR'));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "PUT - Método no permitido (405 y ERROR)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 405', () => pm.expect(pm.response.code).to.eql(405));",
+                  "pm.test('Cuerpo literal ERROR', () => pm.expect(pm.response.text()).to.eql('ERROR'));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "PATCH - Método no permitido (405 y ERROR)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 405', () => pm.expect(pm.response.code).to.eql(405));",
+                  "pm.test('Cuerpo literal ERROR', () => pm.expect(pm.response.text()).to.eql('ERROR'));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "DELETE - Método no permitido (405 y ERROR)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 405', () => pm.expect(pm.response.code).to.eql(405));",
+                  "pm.test('Cuerpo literal ERROR', () => pm.expect(pm.response.text()).to.eql('ERROR'));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "OPTIONS - Método no permitido (405 y ERROR)",
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 405', () => pm.expect(pm.response.code).to.eql(405));",
+                  "pm.test('Cuerpo literal ERROR', () => pm.expect(pm.response.text()).to.eql('ERROR'));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "HEAD - Sin cuerpo por protocolo HTTP (405)",
+          "request": {
+            "method": "HEAD",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 405', () => pm.expect(pm.response.code).to.eql(405));",
+                  "pm.test('HEAD no contiene cuerpo', () => pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Diagnóstico de infraestructura",
+      "item": [
+        {
+          "name": "TRACE - Rechazo en proxy (405; revisar cuerpo)",
+          "request": {
+            "method": "TRACE",
+            "header": [
+              {
+                "key": "X-Parse-REST-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "X-JWT-KWY",
+                "value": "{{jwt}}"
+              }
+            ],
+            "url": "{{base_url}}/DevOps",
+            "description": "Comprueba únicamente el rechazo HTTP 405. Kong puede devolver JSON y Cloudflare HTML. Un test correcto aquí NO demuestra el requisito de cuerpo literal ERROR; esa limitación permanece documentada."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado HTTP esperado: 405', () => pm.expect(pm.response.code).to.eql(405));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}

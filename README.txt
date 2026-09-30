@@ -3,6 +3,7 @@ Jorge Fidel Prieto Linares
 
 Inicio rápido para PowerShell, Git Bash, Linux y macOS: INICIO_RAPIDO.md.
 Incluye cómo resolver "scripts/demo.py no existe" y cuándo se necesita el túnel.
+Colección de Postman y pasos de importación: postman/README.md.
 
 API REST implementada con .NET, Kong, Redis, Docker, Kubernetes y GitHub Actions.
 El servicio valida credenciales, controla la reutilización de JWT y responde
