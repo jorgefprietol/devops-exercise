@@ -21,12 +21,14 @@ records = []
 for _ in range(14):
     hpa = get(['hpa','devops-api'])
     status = hpa.get('status', {})
-    record = {'time': time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()), 'current': status.get('currentReplicas'), 'desired': status.get('desiredReplicas'), 'metrics': status.get('currentMetrics')}
+    available = get(['deployment','devops-api']).get('status',{}).get('availableReplicas',0)
+    record = {'time': time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()), 'current': status.get('currentReplicas'), 'desired': status.get('desiredReplicas'), 'available':available, 'metrics': status.get('currentMetrics')}
     records.append(record)
     print(json.dumps(record), flush=True)
     time.sleep(10)
 load.wait(timeout=10)
 assert any((x.get('desired') or 0) > before for x in records), 'HPA did not request more replicas'
 assert any((x.get('current') or 0) > before for x in records), 'New replicas were not observed'
+assert any(x['available'] > before for x in records), 'Additional replicas did not become available'
 (root/'evidence/hpa-live.json').write_text(json.dumps({'test':'90-second synthetic CPU load in one API pod; not an HTTP throughput benchmark','initial':before,'records':records},indent=2),encoding='utf-8')
 print('PASS: HPA increased replicas from its initial value. CPU load has ended.',flush=True)
