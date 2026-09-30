@@ -1,6 +1,9 @@
 EJERCICIO DEVOPS
 Jorge Fidel Prieto Linares
 
+Inicio rápido para PowerShell, Git Bash, Linux y macOS: INICIO_RAPIDO.md.
+Incluye cómo resolver "scripts/demo.py no existe" y cuándo se necesita el túnel.
+
 API REST implementada con .NET, Kong, Redis, Docker, Kubernetes y GitHub Actions.
 El servicio valida credenciales, controla la reutilización de JWT y responde
 al contrato solicitado mediante POST /DevOps.
@@ -64,6 +67,13 @@ La primera ejecución tarda lo que requiera descargar y construir las imágenes.
 
 Repetir las comprobaciones sin reiniciar:
 py -3 scripts/demo.py --test-only
+
+Este comando se ejecuta dentro del repositorio y requiere contenedores activos.
+Si Git Bash muestra MINGW64 /, entra primero en la carpeta donde clonaste el
+proyecto. Alternativa desde cualquier carpeta: usa la ruta absoluta del script,
+por ejemplo py -3 "D:/Proyectos/devops-exercise/scripts/demo.py" --test-only.
+Sustituye la carpeta por la ubicación real. Para iniciar usa el comando sin
+--test-only. El error de archivo inexistente ocurre antes de ejecutar el script.
 
 Detener conservando los datos:
 py -3 scripts/demo.py --stop
