@@ -1,0 +1,16 @@
+{
+  "cambio": "Esperar disponibilidad de Kong tras un rollout, sin reintentar errores de credenciales",
+  "incidencia_observada": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36790822002",
+  "rojo": {
+    "fecha_utc": "2026-09-30T23:28:23.892223+00:00",
+    "pruebas_nuevas_fallidas": 2,
+    "causa": "La espera acotada del gateway todavía no estaba implementada",
+    "sha256_registro": "d8408a025c0b849735fd41d2c73cc5f5fa150d10f477eac21dfc32864f9328de"
+  },
+  "verde": {
+    "fecha_utc": "2026-09-30T23:29:45.752112+00:00",
+    "pruebas_python_correctas": 18,
+    "sha256_registro": "886d152c8f810979181aff140906da04bc003043166e8da2d19b71acdd735a0c"
+  },
+  "comportamiento": "Hasta seis intentos con JWT nuevo para errores de conexión y HTTP 502/503/504. HTTP 401 y otros errores definitivos interrumpen. Después se ejecuta la suite completa sin reintentos."
+}

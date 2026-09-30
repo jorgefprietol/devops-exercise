@@ -13,7 +13,7 @@ Build y Test,Compilación y Pruebas,Etapas obligatorias antes de imagen,Se agreg
 Master siempre producción,Selección de entorno y comprobación de ascendencia,Evento push o ejecución manual desde master,production es el entorno lógico del laboratorio
 Múltiples entornos,development staging production,Namespaces y NodePorts independientes,Tres entornos preparados; secretos JWT y Redis separados
 Ejecución bajo demanda y versiones,workflow_dispatch y etiquetas vX.Y.Z,Selección de referencia e imagen por digest,La versión de producción debe pertenecer a master
-Pruebas automatizadas,43 pruebas .NET y 16 Python,Artefacto pruebas-y-cobertura,Integración adicional con Kong y Redis reales
+Pruebas automatizadas,43 pruebas .NET y 18 Python,Artefacto pruebas-y-cobertura,Integración adicional con Kong y Redis reales
 TDD,Ciclos rojo y verde de cabeceras y despliegue portable,evidence/tdd-seguridad.json y evidence/tdd-portabilidad.json,Evidencia de cambios concretos; no se afirma TDD retrospectivo de todo el proyecto
 Cobertura,85.93 por ciento de líneas y 89.47 de ramas,Umbral de líneas 80 por ciento,No equivale a seguridad completa
 Análisis estático,Analizadores .NET y formato,Advertencias tratadas como errores,Incluye analizadores xUnit

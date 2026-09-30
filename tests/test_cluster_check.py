@@ -3,10 +3,12 @@ import json
 from pathlib import Path
 import sys
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+import urllib.error
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from cluster_check import gateway_forward, verify_cluster
+import cluster_check
 
 
 def pods(nodes):
@@ -15,6 +17,26 @@ def pods(nodes):
 
 
 class ClusterCheckTests(unittest.TestCase):
+    def test_espera_un_error_temporal_del_gateway_con_jwt_nuevo(self):
+        response = MagicMock()
+        response.__enter__.return_value.status = 200
+        response.__enter__.return_value.read.return_value = b'{"message":"Hello Juan Perez your message will be sent"}'
+        temporary = urllib.error.HTTPError('https://127.0.0.1', 504, 'Gateway Timeout', {}, None)
+        with patch('urllib.request.urlopen', side_effect=[temporary, response]) as send, \
+             patch('cluster_check.time.sleep'):
+            cluster_check.wait_gateway({'API_KEY': 'clave', 'JWT_SECRET': 's' * 32}, 'https://127.0.0.1:45678')
+            self.assertEqual(2, send.call_count)
+            tokens = [call.args[0].get_header('X-jwt-kwy') for call in send.call_args_list]
+            self.assertTrue(all(tokens))
+            self.assertNotEqual(tokens[0], tokens[1])
+
+    def test_no_reintenta_credenciales_incorrectas(self):
+        unauthorized = urllib.error.HTTPError('https://127.0.0.1', 401, 'Unauthorized', {}, None)
+        with patch('urllib.request.urlopen', side_effect=unauthorized) as send:
+            with self.assertRaises(urllib.error.HTTPError):
+                cluster_check.wait_gateway({'API_KEY': 'clave', 'JWT_SECRET': 's' * 32}, 'https://127.0.0.1:45678')
+            send.assert_called_once()
+
     def test_dos_pods_en_un_solo_nodo_no_cumplen(self):
         with patch('cluster_check.subprocess.check_output', return_value=json.dumps(pods(['nodo-1', 'nodo-1'])).encode()):
             with self.assertRaisesRegex(RuntimeError, 'dos nodos'):

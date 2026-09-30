@@ -22,7 +22,7 @@ CONTENIDO Y COMPROBACIONES
 - Compilación, pruebas, imagen por digest y despliegue en GitHub Actions.
 - master -> production; develop -> development; etiquetas -> staging.
 - Ejecución manual y selección de una versión publicada.
-- 43 pruebas .NET; 16 pruebas Python; umbral de cobertura de líneas del 80 %.
+- 43 pruebas .NET; 18 pruebas Python; umbral de cobertura de líneas del 80 %.
 - Análisis estático, formato y auditoría de dependencias bloqueadas.
 - Dos trabajadores con réplicas distribuidas; HPA de 2 a 6 pods de la API.
 - JWT único por transacción y rechazo de repeticiones entre réplicas.

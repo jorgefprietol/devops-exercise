@@ -1,11 +1,11 @@
 {
-  "fecha_utc": "2026-09-30T23:20:04.197470+00:00",
+  "fecha_utc": "2026-09-30T23:28:43.156127+00:00",
   "entornos": [
     {
       "entorno": "production",
       "pruebas_locales": "correctas",
       "cluster": {
-        "fecha_utc": "2026-09-30T23:20:04.197780+00:00",
+        "fecha_utc": "2026-09-30T23:28:43.156127+00:00",
         "namespace": "devops-production",
         "canal": "HTTPS local mediante kubectl port-forward; sin túnel público",
         "replicas": {
@@ -36,7 +36,7 @@
       "entorno": "staging",
       "pruebas_locales": "correctas",
       "cluster": {
-        "fecha_utc": "2026-09-30T23:20:05.828061+00:00",
+        "fecha_utc": "2026-09-30T23:28:45.362866+00:00",
         "namespace": "devops-staging",
         "canal": "HTTPS local mediante kubectl port-forward; sin túnel público",
         "replicas": {
@@ -67,7 +67,7 @@
       "entorno": "development",
       "pruebas_locales": "correctas",
       "cluster": {
-        "fecha_utc": "2026-09-30T23:20:07.176608+00:00",
+        "fecha_utc": "2026-09-30T23:29:03.061240+00:00",
         "namespace": "devops-development",
         "canal": "HTTPS local mediante kubectl port-forward; sin túnel público",
         "replicas": {

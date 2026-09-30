@@ -14,14 +14,15 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 
 
-def token():
+def token(secret=None):
     def enc(value):
         return base64.urlsafe_b64encode(json.dumps(value, separators=(',', ':')).encode()).rstrip(b'=')
     now = int(time.time())
     body = enc({'alg': 'HS256', 'typ': 'JWT'}) + b'.' + enc({
         'iss': 'devops-candidate', 'aud': 'devops-api', 'sub': 'smoke-test',
         'iat': now, 'nbf': now, 'exp': now + 300, 'jti': uuid.uuid4().hex})
-    sig = base64.urlsafe_b64encode(hmac.new(os.environ['JWT_SECRET'].encode(), body, hashlib.sha256).digest()).rstrip(b'=')
+    key = os.environ['JWT_SECRET'] if secret is None else secret
+    sig = base64.urlsafe_b64encode(hmac.new(key.encode(), body, hashlib.sha256).digest()).rstrip(b'=')
     return (body + b'.' + sig).decode()
 
 

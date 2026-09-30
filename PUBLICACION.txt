@@ -55,7 +55,7 @@ Actions -> Integración y despliegue DevOps -> Run workflow permite elegir
 entorno y una etiqueta existente. La imagen se aplica por digest inmutable.
 
 Ejemplo para una versión publicada:
-gh workflow run ci-cd.yml --ref v1.0.2 -f environment=staging -f version=v1.0.2
+gh workflow run ci-cd.yml --ref v1.0.3 -f environment=staging -f version=v1.0.3
 
 Al seleccionar master el destino siempre es production, aunque se solicite
 otro entorno. Producción solo acepta una versión perteneciente a master.

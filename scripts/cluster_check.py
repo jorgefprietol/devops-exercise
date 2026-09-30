@@ -4,10 +4,15 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
+import ssl
 import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from smoke import token
 
 
 def kubectl(env):
@@ -15,6 +20,32 @@ def kubectl(env):
     if env.get('KUBECTL_CONTEXT'):
         command += ['--context', env['KUBECTL_CONTEXT']]
     return command
+
+
+def wait_gateway(env, url):
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme != 'https' or parsed.hostname not in ('127.0.0.1', 'localhost'):
+        raise ValueError('La espera local solo admite HTTPS de loopback')
+    body = json.dumps({'message': 'This is a test', 'to': 'Juan Perez',
+                       'from': 'Rita Asturia', 'timeToLifeSec': 45}).encode()
+    for attempt in range(6):
+        # Es otra transacción de diagnóstico, con un jti nuevo en cada intento.
+        request = urllib.request.Request(url + '/DevOps', data=body, headers={
+            'Content-Type': 'application/json', 'X-Parse-REST-API-Key': env['API_KEY'],
+            'X-JWT-KWY': token(env['JWT_SECRET'])})
+        try:
+            with urllib.request.urlopen(request, context=ssl._create_unverified_context(), timeout=12) as response:
+                if response.status != 200 or json.loads(response.read()) != {'message': 'Hello Juan Perez your message will be sent'}:
+                    raise RuntimeError('La respuesta de disponibilidad no cumple el contrato')
+                return
+        except urllib.error.HTTPError as error:
+            if error.code not in (502, 503, 504) or attempt == 5:
+                raise
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if attempt == 5:
+                raise
+        print('Esperando la disponibilidad del gateway después del rollout.', flush=True)
+        time.sleep(2)
 
 
 @contextmanager
@@ -76,6 +107,7 @@ def verify_cluster(root, env, namespace):
     report['hpa'] = {'minimo': hpa['spec']['minReplicas'], 'maximo': hpa['spec']['maxReplicas'],
                      'metricas_disponibles': True}
     with gateway_forward(env, namespace) as url:
+        wait_gateway(env, url)
         subprocess.run([sys.executable, str(Path(root) / 'scripts/smoke.py'), url, '--local'],
                        cwd=root, env=env, check=True, timeout=120)
     report['contrato_autenticacion_y_repeticiones'] = 'correcto'
