@@ -1,0 +1,161 @@
+name: DevOps build test and deploy
+on:
+  pull_request:
+    branches: [master, develop]
+  push:
+    branches: [master, develop]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [development, staging, production]
+        default: staging
+      version:
+        description: 'Existing vX.Y.Z tag; blank uses the selected branch'
+        type: string
+        default: ''
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.meta.outputs.sha }}
+      target: ${{ steps.meta.outputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version || github.ref }}
+          fetch-depth: 0
+      - name: Select version and environment
+        id: meta
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+          REQUESTED_ENV: ${{ inputs.environment }}
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$VERSION" && ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then exit 1; fi
+          target=staging
+          if [[ "$REF" == refs/heads/develop ]]; then target=development; fi
+          if [[ "$EVENT" == workflow_dispatch ]]; then target="$REQUESTED_ENV"; fi
+          if [[ "$REF" == refs/heads/master && -z "$VERSION" ]]; then target=production; fi
+          if [[ "$target" == production && "$EVENT" != pull_request ]]; then
+            git merge-base --is-ancestor HEAD origin/master
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - run: dotnet restore --locked-mode
+      - name: Build with static analyzers
+        run: dotnet build -c Release --no-restore -warnaserror
+      - name: Static formatting analysis
+        run: dotnet format --verify-no-changes --no-restore
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.sha }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet restore --locked-mode
+      - run: dotnet test -c Release --no-restore --collect:'XPlat Code Coverage' --logger trx --results-directory evidence/green
+      - run: python3 scripts/coverage_gate.py 80
+      - name: Prepare isolated integration settings
+        run: python3 scripts/init_local.py
+      - name: Start gateway Redis and two API containers
+        run: docker compose up -d --build --wait --wait-timeout 180
+      - name: Gateway integration and replay checks
+        shell: bash
+        run: |
+          set -a
+          source .env
+          set +a
+          python3 scripts/smoke.py https://localhost:8443 --local
+      - name: Container logs on failure
+        if: failure()
+        run: docker compose logs --tail=60
+      - name: Stop integration containers
+        if: always()
+        run: docker compose down
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tests-and-coverage
+          path: evidence/green
+  package:
+    needs: [build, test]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.sha }}
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: name
+        env:
+          REPO: ${{ github.repository }}
+        run: echo "value=ghcr.io/${REPO,,}" >> "$GITHUB_OUTPUT"
+      - id: publish
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.name.outputs.value }}:sha-${{ needs.build.outputs.sha }}
+      - id: image
+        env:
+          NAME: ${{ steps.name.outputs.value }}
+          DIGEST: ${{ steps.publish.outputs.digest }}
+        run: echo "ref=$NAME@$DIGEST" >> "$GITHUB_OUTPUT"
+  deploy:
+    needs: [build, test, package]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.build.outputs.target }}
+    concurrency:
+      group: deploy-${{ needs.build.outputs.target }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.sha }}
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: v1.34.1
+      - name: Configure cluster access
+        env:
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
+        run: |
+          umask 077
+          printf '%s' "$KUBECONFIG_B64" | base64 --decode > "$RUNNER_TEMP/kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
+      - name: Deploy exact image and verify
+        env:
+          DEPLOY_ENV: ${{ needs.build.outputs.target }}
+          IMAGE: ${{ needs.package.outputs.image }}
+          API_KEY: ${{ secrets.API_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          TLS_CRT_B64: ${{ secrets.TLS_CRT_B64 }}
+          TLS_KEY_B64: ${{ secrets.TLS_KEY_B64 }}
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+        run: bash scripts/rollout.sh

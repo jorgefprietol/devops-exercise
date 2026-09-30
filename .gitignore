@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/TestResults/
+.env
+.local/
+*.pfx
+*.key
+*.pem
+**/coverage.cobertura.xml
+evidence/red/
+evidence/green/
+artifacts/
+__pycache__/

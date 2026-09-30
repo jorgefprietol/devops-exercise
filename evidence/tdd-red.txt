@@ -1,0 +1,14 @@
+Serie de pruebas para D:\Evaluaciones092026\NTTDATA_DevOps_Cloud\08_Ejercicio_DevOps\solucion\tests\DevOps.Api.Tests\bin\Debug\net8.0\DevOps.Api.Tests.dll (.NETCoreApp,Version=v8.0)
+Versión 17.13.0 (x64) de VSTest
+
+Iniciando la ejecución de pruebas, espere...
+1 archivos de prueba en total coincidieron con el patrón especificado.
+[xUnit.net 00:00:01.26]     DevOps.Api.Tests.ContractTests.Other_methods_return_literal_error(method: "DELETE") [FAIL]
+[xUnit.net 00:00:01.28]     DevOps.Api.Tests.ContractTests.Other_methods_return_literal_error(method: "OPTIONS") [FAIL]
+[xUnit.net 00:00:01.28]     DevOps.Api.Tests.ContractTests.Other_methods_return_literal_error(method: "GET") [FAIL]
+[xUnit.net 00:00:01.29]     DevOps.Api.Tests.ContractTests.Other_methods_return_literal_error(method: "PUT") [FAIL]
+[xUnit.net 00:00:01.30]     DevOps.Api.Tests.ContractTests.Other_methods_return_literal_error(method: "PATCH") [FAIL]
+[xUnit.net 00:00:01.32]     DevOps.Api.Tests.ContractTests.Post_without_credentials_is_unauthorized [FAIL]
+Archivo de resultados: D:\Evaluaciones092026\NTTDATA_DevOps_Cloud\08_Ejercicio_DevOps\solucion\evidence\red\tdd-red.trx
+
+Con error! - Con error:     6, Superado:     1, Omitido:     0, Total:     7, Duración: 707 ms - DevOps.Api.Tests.dll (net8.0)

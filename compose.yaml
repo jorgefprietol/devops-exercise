@@ -1,0 +1,51 @@
+services:
+  api1: &api
+    build: .
+    image: devops-api:local
+    environment:
+      API_KEY: ${API_KEY:?Run scripts/init_local.py}
+      JWT_SECRET: ${JWT_SECRET:?Run scripts/init_local.py}
+      REDIS_CONNECTION: redis:6379,password=${REDIS_PASSWORD},abortConnect=false
+    depends_on:
+      redis:
+        condition: service_healthy
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  api2:
+    <<: *api
+  redis:
+    image: redis:7.4-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Run scripts/init_local.py}
+    command: [sh, -c, 'exec redis-server --appendonly yes --appendfsync always --requirepass "$$REDIS_PASSWORD"']
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: [CMD-SHELL, 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep PONG']
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  kong:
+    image: kong:3.9
+    environment:
+      KONG_DATABASE: 'off'
+      KONG_DECLARATIVE_CONFIG: /kong/kong.json
+      KONG_ADMIN_LISTEN: 'off'
+      KONG_PROXY_LISTEN: '0.0.0.0:8443 ssl'
+      KONG_STATUS_LISTEN: '0.0.0.0:8100'
+    volumes: [./.local/kong.json:/kong/kong.json:ro]
+    ports: ['127.0.0.1:8443:8443']
+    depends_on: [api1, api2]
+    healthcheck:
+      test: [CMD, kong, health]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  redis-data:
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${LAB_SUBNET:-10.203.71.0/24}

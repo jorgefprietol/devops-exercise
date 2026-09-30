@@ -1,0 +1,2 @@
+PASS: 8 actual Bash selection scenarios with controlled Git ancestry outcomes: PR, master, develop, tags, manual selection, invalid version and rejected production ancestry.
+Remote GitHub execution still pending.
