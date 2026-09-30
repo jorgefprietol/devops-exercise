@@ -28,6 +28,7 @@ def resources(env, image):
     def probe(path, port): return {'httpGet': {'path': path, 'port': port}, 'initialDelaySeconds': 5, 'periodSeconds': 5}
     def spread(label):
         return [{'maxSkew': 1, 'minDomains': 2, 'topologyKey': 'kubernetes.io/hostname',
+                 'nodeTaintsPolicy': 'Honor',
                  'whenUnsatisfiable': 'DoNotSchedule', 'labelSelector': {'matchLabels': {'app': label}}}]
     security = {'runAsNonRoot': True, 'allowPrivilegeEscalation': False,
                 'readOnlyRootFilesystem': True, 'capabilities': {'drop': ['ALL']}}

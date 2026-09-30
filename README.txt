@@ -122,7 +122,7 @@ para rollback. Los tags seleccionan código versionado; esta implementación lo
 reconstruye. Para promover exactamente el mismo binario entre entornos, guardar
 y promover el digest del release en vez de reconstruirlo.
 
-VARIANTE CLOUD: DESPLIEGUE BAJO DEMANDA DESDE LINUX
+VARIANTE CLOUD: VARIANTE CLOUD: DESPLIEGUE BAJO DEMANDA DESDE LINUX
 Exportar API_KEY, JWT_SECRET, REDIS_PASSWORD, TLS_CRT_B64, TLS_KEY_B64, un
 kubeconfig autorizado y además:
   DEPLOY_ENV=staging
