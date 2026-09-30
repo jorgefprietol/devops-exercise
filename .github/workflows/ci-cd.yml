@@ -89,7 +89,7 @@ jobs:
         run: dotnet test -c Release --no-restore --collect:'XPlat Code Coverage' --logger trx --results-directory evidence/green
       - name: Conservar auditoría de dependencias
         run: python3 scripts/dependency_audit.py
-      - name: Probar el control de seguridad de dependencias
+      - name: Probar controles de seguridad y configuración
         run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Verificar el umbral de cobertura
         run: python3 scripts/coverage_gate.py 80

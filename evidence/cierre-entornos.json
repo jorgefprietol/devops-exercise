@@ -1,0 +1,85 @@
+{
+  "fecha_utc": "2026-09-30T19:55:31.821616+00:00",
+  "entornos": [
+    {
+      "entorno": "production",
+      "url": "https://anthony-highlights-ward-technique.trycloudflare.com",
+      "pruebas_publicas": "correctas",
+      "pruebas_locales": "correctas",
+      "namespace": "devops-production"
+    },
+    {
+      "entorno": "staging",
+      "url": "https://criticism-foods-philips-replica.trycloudflare.com",
+      "pruebas_publicas": "correctas",
+      "pruebas_locales": "correctas",
+      "namespace": "devops-staging"
+    },
+    {
+      "entorno": "development",
+      "url": "https://interact-julian-treasures-tribes.trycloudflare.com",
+      "pruebas_publicas": "correctas",
+      "pruebas_locales": "correctas",
+      "namespace": "devops-development"
+    }
+  ],
+  "secretos_independientes": true,
+  "rechazo_jwt_entre_entornos": [
+    {
+      "origen": "production",
+      "destino": "staging",
+      "estado": 401
+    },
+    {
+      "origen": "production",
+      "destino": "development",
+      "estado": 401
+    },
+    {
+      "origen": "staging",
+      "destino": "production",
+      "estado": 401
+    },
+    {
+      "origen": "staging",
+      "destino": "development",
+      "estado": 401
+    },
+    {
+      "origen": "development",
+      "destino": "production",
+      "estado": 401
+    },
+    {
+      "origen": "development",
+      "destino": "staging",
+      "estado": 401
+    }
+  ],
+  "metodos_especiales": [
+    {
+      "canal": "local",
+      "metodo": "HEAD",
+      "estado": 405,
+      "tipo_cuerpo": "vacio"
+    },
+    {
+      "canal": "local",
+      "metodo": "TRACE",
+      "estado": 405,
+      "tipo_cuerpo": "JSON"
+    },
+    {
+      "canal": "publico",
+      "metodo": "HEAD",
+      "estado": 405,
+      "tipo_cuerpo": "vacio"
+    },
+    {
+      "canal": "publico",
+      "metodo": "TRACE",
+      "estado": 405,
+      "tipo_cuerpo": "HTML"
+    }
+  ]
+}

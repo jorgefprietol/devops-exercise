@@ -30,7 +30,7 @@ En Linux/macOS: python3 scripts/demo.py
 La respuesta y las comprobaciones se muestran en la consola.
 
 RESULTADOS
-43 pruebas .NET y 3 comprobaciones Python correctas y cobertura de líneas de 85,93 %.
+43 pruebas .NET y 6 comprobaciones Python correctas y cobertura de líneas de 85,93 %.
 Integración HTTPS con autenticación y rechazo de repeticiones concurrentes.
 Un nodo de control y dos trabajadores; escalado de 2 a 6 réplicas disponibles.
 Políticas de red que restringen el acceso directo a API y Redis.
@@ -39,3 +39,14 @@ ALCANCE
 Kubernetes local y túnel HTTPS. Los nodos comparten un PC; la disponibilidad
 depende del equipo, Docker y el túnel. Redis tiene una réplica persistente.
 Se implementa el contrato de respuesta sin una cola de envío real.
+
+ENTORNOS Y VERSIONES
+production, staging y development comprobados mediante HTTPS local y público.
+Cada entorno tiene sus secretos de firma y Redis; seis cruces de JWT se rechazan.
+Ejecuciones automáticas por rama y etiqueta, más una ejecución manual v1.0.0:
+evidence/ejecuciones-cierre.json. Detalle funcional: evidence/cierre-entornos.json.
+
+EXCEPCIONES DEL CONTRATO HTTP
+HEAD: 405 sin cuerpo, como exige HTTP. TRACE: 405 JSON desde Kong o HTML
+desde Cloudflare; el rechazo ocurre antes de la API y no contiene ERROR literal.
+GET, PUT, PATCH, DELETE y OPTIONS sí devuelven 405 con cuerpo ERROR.

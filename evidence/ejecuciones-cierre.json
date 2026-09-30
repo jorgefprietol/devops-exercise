@@ -1,0 +1,1601 @@
+{
+  "fecha_utc": "2026-09-30T20:00:27.870546+00:00",
+  "ejecuciones": [
+    {
+      "conclusion": "success",
+      "databaseId": 36768890384,
+      "event": "push",
+      "headBranch": "master",
+      "headSha": "6bed3792570452c18aa8d7a9a6110aedc323e6b6",
+      "jobs": [
+        {
+          "completedAt": "2026-09-30T19:54:54Z",
+          "conclusion": "success",
+          "databaseId": 110069915943,
+          "name": "Compilación",
+          "startedAt": "2026-09-30T19:54:19Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:54:21Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:54:20Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:22Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:54:21Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:22Z",
+              "conclusion": "success",
+              "name": "Seleccionar versión y entorno",
+              "number": 3,
+              "startedAt": "2026-09-30T19:54:22Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:28Z",
+              "conclusion": "success",
+              "name": "Preparar SDK de .NET",
+              "number": 4,
+              "startedAt": "2026-09-30T19:54:22Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:31Z",
+              "conclusion": "success",
+              "name": "Restaurar dependencias bloqueadas",
+              "number": 5,
+              "startedAt": "2026-09-30T19:54:28Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:36Z",
+              "conclusion": "success",
+              "name": "Auditar dependencias directas y transitivas",
+              "number": 6,
+              "startedAt": "2026-09-30T19:54:31Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:41Z",
+              "conclusion": "success",
+              "name": "Compilar con análisis estático",
+              "number": 7,
+              "startedAt": "2026-09-30T19:54:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:52Z",
+              "conclusion": "success",
+              "name": "Verificar formato del código",
+              "number": 8,
+              "startedAt": "2026-09-30T19:54:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:52Z",
+              "conclusion": "success",
+              "name": "Post Preparar SDK de .NET",
+              "number": 15,
+              "startedAt": "2026-09-30T19:54:52Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:52Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 16,
+              "startedAt": "2026-09-30T19:54:52Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:52Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 17,
+              "startedAt": "2026-09-30T19:54:52Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768890384/job/110069915943"
+        },
+        {
+          "completedAt": "2026-09-30T19:56:02Z",
+          "conclusion": "success",
+          "databaseId": 110070154066,
+          "name": "Pruebas",
+          "startedAt": "2026-09-30T19:54:56Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:54:58Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:54:57Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:58Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:54:58Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:59Z",
+              "conclusion": "success",
+              "name": "Preparar SDK de .NET",
+              "number": 3,
+              "startedAt": "2026-09-30T19:54:58Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:07Z",
+              "conclusion": "success",
+              "name": "Restaurar dependencias bloqueadas",
+              "number": 4,
+              "startedAt": "2026-09-30T19:54:59Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:21Z",
+              "conclusion": "success",
+              "name": "Ejecutar pruebas automatizadas",
+              "number": 5,
+              "startedAt": "2026-09-30T19:55:07Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:26Z",
+              "conclusion": "success",
+              "name": "Conservar auditoría de dependencias",
+              "number": 6,
+              "startedAt": "2026-09-30T19:55:21Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:26Z",
+              "conclusion": "success",
+              "name": "Probar el control de seguridad de dependencias",
+              "number": 7,
+              "startedAt": "2026-09-30T19:55:26Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:26Z",
+              "conclusion": "success",
+              "name": "Verificar el umbral de cobertura",
+              "number": 8,
+              "startedAt": "2026-09-30T19:55:26Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:59Z",
+              "conclusion": "success",
+              "name": "Probar el arranque del evaluador y la integración HTTPS",
+              "number": 9,
+              "startedAt": "2026-09-30T19:55:26Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:59Z",
+              "conclusion": "skipped",
+              "name": "Consultar registros en caso de error",
+              "number": 10,
+              "startedAt": "2026-09-30T19:55:59Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:00Z",
+              "conclusion": "success",
+              "name": "Detener contenedores de prueba",
+              "number": 11,
+              "startedAt": "2026-09-30T19:55:59Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:01Z",
+              "conclusion": "success",
+              "name": "Guardar resultados de pruebas",
+              "number": 12,
+              "startedAt": "2026-09-30T19:56:00Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:01Z",
+              "conclusion": "success",
+              "name": "Post Preparar SDK de .NET",
+              "number": 23,
+              "startedAt": "2026-09-30T19:56:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:02Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 24,
+              "startedAt": "2026-09-30T19:56:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:02Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 25,
+              "startedAt": "2026-09-30T19:56:02Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768890384/job/110070154066"
+        },
+        {
+          "completedAt": "2026-09-30T19:56:47Z",
+          "conclusion": "success",
+          "databaseId": 110070598545,
+          "name": "Imagen Docker",
+          "startedAt": "2026-09-30T19:56:05Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:56:07Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:56:06Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:08Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:56:07Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:23Z",
+              "conclusion": "success",
+              "name": "Preparar constructor Docker",
+              "number": 3,
+              "startedAt": "2026-09-30T19:56:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:23Z",
+              "conclusion": "success",
+              "name": "Autenticar el registro de imágenes",
+              "number": 4,
+              "startedAt": "2026-09-30T19:56:23Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:23Z",
+              "conclusion": "success",
+              "name": "Preparar nombre de imagen",
+              "number": 5,
+              "startedAt": "2026-09-30T19:56:23Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:43Z",
+              "conclusion": "success",
+              "name": "Construir y publicar imagen",
+              "number": 6,
+              "startedAt": "2026-09-30T19:56:23Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:43Z",
+              "conclusion": "success",
+              "name": "Registrar imagen inmutable",
+              "number": 7,
+              "startedAt": "2026-09-30T19:56:43Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:43Z",
+              "conclusion": "success",
+              "name": "Post Construir y publicar imagen",
+              "number": 11,
+              "startedAt": "2026-09-30T19:56:43Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:43Z",
+              "conclusion": "success",
+              "name": "Post Autenticar el registro de imágenes",
+              "number": 12,
+              "startedAt": "2026-09-30T19:56:43Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:46Z",
+              "conclusion": "success",
+              "name": "Post Preparar constructor Docker",
+              "number": 13,
+              "startedAt": "2026-09-30T19:56:43Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:46Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 14,
+              "startedAt": "2026-09-30T19:56:46Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:46Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 15,
+              "startedAt": "2026-09-30T19:56:46Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768890384/job/110070598545"
+        },
+        {
+          "completedAt": "2026-09-30T19:57:36Z",
+          "conclusion": "success",
+          "databaseId": 110070884402,
+          "name": "Despliegue Kubernetes",
+          "startedAt": "2026-09-30T19:56:49Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:56:51Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:56:50Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:52Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:56:51Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:34Z",
+              "conclusion": "success",
+              "name": "Solicitar despliegue y esperar la verificación pública",
+              "number": 3,
+              "startedAt": "2026-09-30T19:56:52Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:34Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 6,
+              "startedAt": "2026-09-30T19:57:34Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:34Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 7,
+              "startedAt": "2026-09-30T19:57:34Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768890384/job/110070884402"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768890384"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 36768898214,
+      "event": "push",
+      "headBranch": "develop",
+      "headSha": "6bed3792570452c18aa8d7a9a6110aedc323e6b6",
+      "jobs": [
+        {
+          "completedAt": "2026-09-30T19:55:07Z",
+          "conclusion": "success",
+          "databaseId": 110069943229,
+          "name": "Compilación",
+          "startedAt": "2026-09-30T19:54:23Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:54:24Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:54:24Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:25Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:54:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:25Z",
+              "conclusion": "success",
+              "name": "Seleccionar versión y entorno",
+              "number": 3,
+              "startedAt": "2026-09-30T19:54:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:30Z",
+              "conclusion": "success",
+              "name": "Preparar SDK de .NET",
+              "number": 4,
+              "startedAt": "2026-09-30T19:54:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:35Z",
+              "conclusion": "success",
+              "name": "Restaurar dependencias bloqueadas",
+              "number": 5,
+              "startedAt": "2026-09-30T19:54:30Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:41Z",
+              "conclusion": "success",
+              "name": "Auditar dependencias directas y transitivas",
+              "number": 6,
+              "startedAt": "2026-09-30T19:54:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:50Z",
+              "conclusion": "success",
+              "name": "Compilar con análisis estático",
+              "number": 7,
+              "startedAt": "2026-09-30T19:54:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:05Z",
+              "conclusion": "success",
+              "name": "Verificar formato del código",
+              "number": 8,
+              "startedAt": "2026-09-30T19:54:50Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:05Z",
+              "conclusion": "success",
+              "name": "Post Preparar SDK de .NET",
+              "number": 15,
+              "startedAt": "2026-09-30T19:55:05Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:06Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 16,
+              "startedAt": "2026-09-30T19:55:05Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:06Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 17,
+              "startedAt": "2026-09-30T19:55:06Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768898214/job/110069943229"
+        },
+        {
+          "completedAt": "2026-09-30T19:56:28Z",
+          "conclusion": "success",
+          "databaseId": 110070238874,
+          "name": "Pruebas",
+          "startedAt": "2026-09-30T19:55:10Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:55:12Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:55:10Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:13Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:55:12Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:14Z",
+              "conclusion": "success",
+              "name": "Preparar SDK de .NET",
+              "number": 3,
+              "startedAt": "2026-09-30T19:55:13Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:24Z",
+              "conclusion": "success",
+              "name": "Restaurar dependencias bloqueadas",
+              "number": 4,
+              "startedAt": "2026-09-30T19:55:14Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:42Z",
+              "conclusion": "success",
+              "name": "Ejecutar pruebas automatizadas",
+              "number": 5,
+              "startedAt": "2026-09-30T19:55:24Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:46Z",
+              "conclusion": "success",
+              "name": "Conservar auditoría de dependencias",
+              "number": 6,
+              "startedAt": "2026-09-30T19:55:42Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:47Z",
+              "conclusion": "success",
+              "name": "Probar el control de seguridad de dependencias",
+              "number": 7,
+              "startedAt": "2026-09-30T19:55:46Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:47Z",
+              "conclusion": "success",
+              "name": "Verificar el umbral de cobertura",
+              "number": 8,
+              "startedAt": "2026-09-30T19:55:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:24Z",
+              "conclusion": "success",
+              "name": "Probar el arranque del evaluador y la integración HTTPS",
+              "number": 9,
+              "startedAt": "2026-09-30T19:55:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:24Z",
+              "conclusion": "skipped",
+              "name": "Consultar registros en caso de error",
+              "number": 10,
+              "startedAt": "2026-09-30T19:56:24Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:26Z",
+              "conclusion": "success",
+              "name": "Detener contenedores de prueba",
+              "number": 11,
+              "startedAt": "2026-09-30T19:56:24Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:26Z",
+              "conclusion": "success",
+              "name": "Guardar resultados de pruebas",
+              "number": 12,
+              "startedAt": "2026-09-30T19:56:26Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:26Z",
+              "conclusion": "success",
+              "name": "Post Preparar SDK de .NET",
+              "number": 23,
+              "startedAt": "2026-09-30T19:56:26Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:27Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 24,
+              "startedAt": "2026-09-30T19:56:26Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:27Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 25,
+              "startedAt": "2026-09-30T19:56:27Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768898214/job/110070238874"
+        },
+        {
+          "completedAt": "2026-09-30T19:57:13Z",
+          "conclusion": "success",
+          "databaseId": 110070759993,
+          "name": "Imagen Docker",
+          "startedAt": "2026-09-30T19:56:31Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:56:35Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:56:32Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:36Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:56:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:46Z",
+              "conclusion": "success",
+              "name": "Preparar constructor Docker",
+              "number": 3,
+              "startedAt": "2026-09-30T19:56:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:47Z",
+              "conclusion": "success",
+              "name": "Autenticar el registro de imágenes",
+              "number": 4,
+              "startedAt": "2026-09-30T19:56:46Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:47Z",
+              "conclusion": "success",
+              "name": "Preparar nombre de imagen",
+              "number": 5,
+              "startedAt": "2026-09-30T19:56:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:08Z",
+              "conclusion": "success",
+              "name": "Construir y publicar imagen",
+              "number": 6,
+              "startedAt": "2026-09-30T19:56:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:08Z",
+              "conclusion": "success",
+              "name": "Registrar imagen inmutable",
+              "number": 7,
+              "startedAt": "2026-09-30T19:57:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:08Z",
+              "conclusion": "success",
+              "name": "Post Construir y publicar imagen",
+              "number": 11,
+              "startedAt": "2026-09-30T19:57:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:08Z",
+              "conclusion": "success",
+              "name": "Post Autenticar el registro de imágenes",
+              "number": 12,
+              "startedAt": "2026-09-30T19:57:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:11Z",
+              "conclusion": "success",
+              "name": "Post Preparar constructor Docker",
+              "number": 13,
+              "startedAt": "2026-09-30T19:57:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:11Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 14,
+              "startedAt": "2026-09-30T19:57:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:11Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 15,
+              "startedAt": "2026-09-30T19:57:11Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768898214/job/110070759993"
+        },
+        {
+          "completedAt": "2026-09-30T19:59:04Z",
+          "conclusion": "success",
+          "databaseId": 110071048638,
+          "name": "Despliegue Kubernetes",
+          "startedAt": "2026-09-30T19:57:16Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:57:17Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:57:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:57:18Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:57:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:59:01Z",
+              "conclusion": "success",
+              "name": "Solicitar despliegue y esperar la verificación pública",
+              "number": 3,
+              "startedAt": "2026-09-30T19:57:18Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:59:01Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 6,
+              "startedAt": "2026-09-30T19:59:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:59:01Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 7,
+              "startedAt": "2026-09-30T19:59:01Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768898214/job/110071048638"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768898214"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 36768893061,
+      "event": "push",
+      "headBranch": "v1.0.0",
+      "headSha": "6bed3792570452c18aa8d7a9a6110aedc323e6b6",
+      "jobs": [
+        {
+          "completedAt": "2026-09-30T19:54:56Z",
+          "conclusion": "success",
+          "databaseId": 110069924727,
+          "name": "Compilación",
+          "startedAt": "2026-09-30T19:54:21Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:54:22Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:54:21Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:23Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:54:22Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:23Z",
+              "conclusion": "success",
+              "name": "Seleccionar versión y entorno",
+              "number": 3,
+              "startedAt": "2026-09-30T19:54:23Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:25Z",
+              "conclusion": "success",
+              "name": "Preparar SDK de .NET",
+              "number": 4,
+              "startedAt": "2026-09-30T19:54:23Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:27Z",
+              "conclusion": "success",
+              "name": "Restaurar dependencias bloqueadas",
+              "number": 5,
+              "startedAt": "2026-09-30T19:54:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:32Z",
+              "conclusion": "success",
+              "name": "Auditar dependencias directas y transitivas",
+              "number": 6,
+              "startedAt": "2026-09-30T19:54:27Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:41Z",
+              "conclusion": "success",
+              "name": "Compilar con análisis estático",
+              "number": 7,
+              "startedAt": "2026-09-30T19:54:32Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:54Z",
+              "conclusion": "success",
+              "name": "Verificar formato del código",
+              "number": 8,
+              "startedAt": "2026-09-30T19:54:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:55Z",
+              "conclusion": "success",
+              "name": "Post Preparar SDK de .NET",
+              "number": 15,
+              "startedAt": "2026-09-30T19:54:54Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:55Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 16,
+              "startedAt": "2026-09-30T19:54:55Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:55Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 17,
+              "startedAt": "2026-09-30T19:54:55Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768893061/job/110069924727"
+        },
+        {
+          "completedAt": "2026-09-30T19:56:21Z",
+          "conclusion": "success",
+          "databaseId": 110070168840,
+          "name": "Pruebas",
+          "startedAt": "2026-09-30T19:54:58Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:55:00Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:54:59Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:00Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:55:00Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:01Z",
+              "conclusion": "success",
+              "name": "Preparar SDK de .NET",
+              "number": 3,
+              "startedAt": "2026-09-30T19:55:00Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:09Z",
+              "conclusion": "success",
+              "name": "Restaurar dependencias bloqueadas",
+              "number": 4,
+              "startedAt": "2026-09-30T19:55:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:39Z",
+              "conclusion": "success",
+              "name": "Ejecutar pruebas automatizadas",
+              "number": 5,
+              "startedAt": "2026-09-30T19:55:09Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:44Z",
+              "conclusion": "success",
+              "name": "Conservar auditoría de dependencias",
+              "number": 6,
+              "startedAt": "2026-09-30T19:55:39Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:44Z",
+              "conclusion": "success",
+              "name": "Probar el control de seguridad de dependencias",
+              "number": 7,
+              "startedAt": "2026-09-30T19:55:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:44Z",
+              "conclusion": "success",
+              "name": "Verificar el umbral de cobertura",
+              "number": 8,
+              "startedAt": "2026-09-30T19:55:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:17Z",
+              "conclusion": "success",
+              "name": "Probar el arranque del evaluador y la integración HTTPS",
+              "number": 9,
+              "startedAt": "2026-09-30T19:55:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:17Z",
+              "conclusion": "skipped",
+              "name": "Consultar registros en caso de error",
+              "number": 10,
+              "startedAt": "2026-09-30T19:56:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:18Z",
+              "conclusion": "success",
+              "name": "Detener contenedores de prueba",
+              "number": 11,
+              "startedAt": "2026-09-30T19:56:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:19Z",
+              "conclusion": "success",
+              "name": "Guardar resultados de pruebas",
+              "number": 12,
+              "startedAt": "2026-09-30T19:56:18Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:19Z",
+              "conclusion": "success",
+              "name": "Post Preparar SDK de .NET",
+              "number": 23,
+              "startedAt": "2026-09-30T19:56:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:19Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 24,
+              "startedAt": "2026-09-30T19:56:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:19Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 25,
+              "startedAt": "2026-09-30T19:56:19Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768893061/job/110070168840"
+        },
+        {
+          "completedAt": "2026-09-30T19:56:52Z",
+          "conclusion": "success",
+          "databaseId": 110070711286,
+          "name": "Imagen Docker",
+          "startedAt": "2026-09-30T19:56:22Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:56:25Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:56:23Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:25Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:56:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:31Z",
+              "conclusion": "success",
+              "name": "Preparar constructor Docker",
+              "number": 3,
+              "startedAt": "2026-09-30T19:56:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:32Z",
+              "conclusion": "success",
+              "name": "Autenticar el registro de imágenes",
+              "number": 4,
+              "startedAt": "2026-09-30T19:56:31Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:32Z",
+              "conclusion": "success",
+              "name": "Preparar nombre de imagen",
+              "number": 5,
+              "startedAt": "2026-09-30T19:56:32Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:49Z",
+              "conclusion": "success",
+              "name": "Construir y publicar imagen",
+              "number": 6,
+              "startedAt": "2026-09-30T19:56:32Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:49Z",
+              "conclusion": "success",
+              "name": "Registrar imagen inmutable",
+              "number": 7,
+              "startedAt": "2026-09-30T19:56:49Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:49Z",
+              "conclusion": "success",
+              "name": "Post Construir y publicar imagen",
+              "number": 11,
+              "startedAt": "2026-09-30T19:56:49Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:49Z",
+              "conclusion": "success",
+              "name": "Post Autenticar el registro de imágenes",
+              "number": 12,
+              "startedAt": "2026-09-30T19:56:49Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:51Z",
+              "conclusion": "success",
+              "name": "Post Preparar constructor Docker",
+              "number": 13,
+              "startedAt": "2026-09-30T19:56:49Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:51Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 14,
+              "startedAt": "2026-09-30T19:56:51Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:51Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 15,
+              "startedAt": "2026-09-30T19:56:51Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768893061/job/110070711286"
+        },
+        {
+          "completedAt": "2026-09-30T19:58:20Z",
+          "conclusion": "success",
+          "databaseId": 110070916969,
+          "name": "Despliegue Kubernetes",
+          "startedAt": "2026-09-30T19:56:54Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:56:56Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:56:55Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:56Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:56:56Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:58:18Z",
+              "conclusion": "success",
+              "name": "Solicitar despliegue y esperar la verificación pública",
+              "number": 3,
+              "startedAt": "2026-09-30T19:56:56Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:58:18Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 6,
+              "startedAt": "2026-09-30T19:58:18Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:58:19Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 7,
+              "startedAt": "2026-09-30T19:58:18Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768893061/job/110070916969"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768893061"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 36768916641,
+      "event": "workflow_dispatch",
+      "headBranch": "v1.0.0",
+      "headSha": "6bed3792570452c18aa8d7a9a6110aedc323e6b6",
+      "jobs": [
+        {
+          "completedAt": "2026-09-30T19:55:07Z",
+          "conclusion": "success",
+          "databaseId": 110070013381,
+          "name": "Compilación",
+          "startedAt": "2026-09-30T19:54:34Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:54:36Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:54:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:36Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:54:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:37Z",
+              "conclusion": "success",
+              "name": "Seleccionar versión y entorno",
+              "number": 3,
+              "startedAt": "2026-09-30T19:54:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:39Z",
+              "conclusion": "success",
+              "name": "Preparar SDK de .NET",
+              "number": 4,
+              "startedAt": "2026-09-30T19:54:37Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:41Z",
+              "conclusion": "success",
+              "name": "Restaurar dependencias bloqueadas",
+              "number": 5,
+              "startedAt": "2026-09-30T19:54:39Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:47Z",
+              "conclusion": "success",
+              "name": "Auditar dependencias directas y transitivas",
+              "number": 6,
+              "startedAt": "2026-09-30T19:54:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:54:53Z",
+              "conclusion": "success",
+              "name": "Compilar con análisis estático",
+              "number": 7,
+              "startedAt": "2026-09-30T19:54:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:04Z",
+              "conclusion": "success",
+              "name": "Verificar formato del código",
+              "number": 8,
+              "startedAt": "2026-09-30T19:54:53Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:05Z",
+              "conclusion": "success",
+              "name": "Post Preparar SDK de .NET",
+              "number": 15,
+              "startedAt": "2026-09-30T19:55:04Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:05Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 16,
+              "startedAt": "2026-09-30T19:55:05Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:05Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 17,
+              "startedAt": "2026-09-30T19:55:05Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768916641/job/110070013381"
+        },
+        {
+          "completedAt": "2026-09-30T19:56:22Z",
+          "conclusion": "success",
+          "databaseId": 110070238043,
+          "name": "Pruebas",
+          "startedAt": "2026-09-30T19:55:09Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:55:11Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:55:10Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:11Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:55:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:12Z",
+              "conclusion": "success",
+              "name": "Preparar SDK de .NET",
+              "number": 3,
+              "startedAt": "2026-09-30T19:55:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:19Z",
+              "conclusion": "success",
+              "name": "Restaurar dependencias bloqueadas",
+              "number": 4,
+              "startedAt": "2026-09-30T19:55:12Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:39Z",
+              "conclusion": "success",
+              "name": "Ejecutar pruebas automatizadas",
+              "number": 5,
+              "startedAt": "2026-09-30T19:55:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:44Z",
+              "conclusion": "success",
+              "name": "Conservar auditoría de dependencias",
+              "number": 6,
+              "startedAt": "2026-09-30T19:55:39Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:44Z",
+              "conclusion": "success",
+              "name": "Probar el control de seguridad de dependencias",
+              "number": 7,
+              "startedAt": "2026-09-30T19:55:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:55:44Z",
+              "conclusion": "success",
+              "name": "Verificar el umbral de cobertura",
+              "number": 8,
+              "startedAt": "2026-09-30T19:55:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:17Z",
+              "conclusion": "success",
+              "name": "Probar el arranque del evaluador y la integración HTTPS",
+              "number": 9,
+              "startedAt": "2026-09-30T19:55:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:17Z",
+              "conclusion": "skipped",
+              "name": "Consultar registros en caso de error",
+              "number": 10,
+              "startedAt": "2026-09-30T19:56:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:19Z",
+              "conclusion": "success",
+              "name": "Detener contenedores de prueba",
+              "number": 11,
+              "startedAt": "2026-09-30T19:56:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:20Z",
+              "conclusion": "success",
+              "name": "Guardar resultados de pruebas",
+              "number": 12,
+              "startedAt": "2026-09-30T19:56:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:20Z",
+              "conclusion": "success",
+              "name": "Post Preparar SDK de .NET",
+              "number": 23,
+              "startedAt": "2026-09-30T19:56:20Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:20Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 24,
+              "startedAt": "2026-09-30T19:56:20Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:20Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 25,
+              "startedAt": "2026-09-30T19:56:20Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768916641/job/110070238043"
+        },
+        {
+          "completedAt": "2026-09-30T19:56:58Z",
+          "conclusion": "success",
+          "databaseId": 110070722325,
+          "name": "Imagen Docker",
+          "startedAt": "2026-09-30T19:56:25Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:56:29Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:56:26Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:29Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:56:29Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:34Z",
+              "conclusion": "success",
+              "name": "Preparar constructor Docker",
+              "number": 3,
+              "startedAt": "2026-09-30T19:56:29Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:35Z",
+              "conclusion": "success",
+              "name": "Autenticar el registro de imágenes",
+              "number": 4,
+              "startedAt": "2026-09-30T19:56:34Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:35Z",
+              "conclusion": "success",
+              "name": "Preparar nombre de imagen",
+              "number": 5,
+              "startedAt": "2026-09-30T19:56:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:53Z",
+              "conclusion": "success",
+              "name": "Construir y publicar imagen",
+              "number": 6,
+              "startedAt": "2026-09-30T19:56:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:53Z",
+              "conclusion": "success",
+              "name": "Registrar imagen inmutable",
+              "number": 7,
+              "startedAt": "2026-09-30T19:56:53Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:54Z",
+              "conclusion": "success",
+              "name": "Post Construir y publicar imagen",
+              "number": 11,
+              "startedAt": "2026-09-30T19:56:53Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:54Z",
+              "conclusion": "success",
+              "name": "Post Autenticar el registro de imágenes",
+              "number": 12,
+              "startedAt": "2026-09-30T19:56:54Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:55Z",
+              "conclusion": "success",
+              "name": "Post Preparar constructor Docker",
+              "number": 13,
+              "startedAt": "2026-09-30T19:56:54Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:56Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 14,
+              "startedAt": "2026-09-30T19:56:55Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:56:56Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 15,
+              "startedAt": "2026-09-30T19:56:56Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768916641/job/110070722325"
+        },
+        {
+          "completedAt": "2026-09-30T20:00:01Z",
+          "conclusion": "success",
+          "databaseId": 110070953879,
+          "name": "Despliegue Kubernetes",
+          "startedAt": "2026-09-30T19:58:23Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-30T19:58:24Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-30T19:58:24Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:58:25Z",
+              "conclusion": "success",
+              "name": "Obtener código",
+              "number": 2,
+              "startedAt": "2026-09-30T19:58:24Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:59:58Z",
+              "conclusion": "success",
+              "name": "Solicitar despliegue y esperar la verificación pública",
+              "number": 3,
+              "startedAt": "2026-09-30T19:58:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:59:58Z",
+              "conclusion": "success",
+              "name": "Post Obtener código",
+              "number": 6,
+              "startedAt": "2026-09-30T19:59:58Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-30T19:59:58Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 7,
+              "startedAt": "2026-09-30T19:59:58Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768916641/job/110070953879"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/jorgefprietol/devops-exercise/actions/runs/36768916641"
+    }
+  ]
+}
