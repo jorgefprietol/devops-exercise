@@ -7,6 +7,20 @@ namespace DevOps.Api.Tests;
 public class ContractTests
 {
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Las_respuestas_impiden_cache_y_deteccion_de_tipo(bool autorizado)
+    {
+        await using var app = new ApiFactory();
+        using var client = app.CreateClient();
+        using var request = ApiFactory.Request(autorizado ? null : "invalido");
+        using var response = await client.SendAsync(request);
+        Assert.Equal(autorizado ? HttpStatusCode.OK : HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.True(response.Headers.CacheControl?.NoStore);
+        Assert.Equal("nosniff", Assert.Single(response.Headers.GetValues("X-Content-Type-Options")));
+    }
+
+    [Theory]
     [InlineData("GET")]
     [InlineData("PUT")]
     [InlineData("PATCH")]

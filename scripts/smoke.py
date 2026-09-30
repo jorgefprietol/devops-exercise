@@ -41,6 +41,9 @@ def main():
             headers={'Content-Type': 'application/json', 'X-Parse-REST-API-Key': api_key or os.environ['API_KEY'], 'X-JWT-KWY': jwt or token()})
         try:
             with urllib.request.urlopen(req, context=ctx, timeout=15) as res:
+                if res.status == 200:
+                    assert res.headers.get('Cache-Control') == 'no-store', 'La respuesta no debe almacenarse en caché'
+                    assert res.headers.get('X-Content-Type-Options') == 'nosniff', 'Debe impedirse la detección automática del tipo'
                 return res.status, res.read().decode()
         except urllib.error.HTTPError as err:
             return err.code, err.read().decode()

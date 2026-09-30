@@ -23,8 +23,21 @@ function Get-LabProcess([string]$PidFile, [string]$ExpectedPath) {
     }
     return $null
 }
-$tunnelExe = Join-Path $labRoot '.local\bin\cloudflared.exe'
-$tunnelProcess = Get-LabProcess '.local\tunnel.pid' $tunnelExe
+$tunnelCommand = Get-Command cloudflared -ErrorAction SilentlyContinue
+$tunnelCandidates = @(
+    $(if ($tunnelCommand) { $tunnelCommand.Source }),
+    (Join-Path ${env:ProgramFiles(x86)} 'cloudflared\cloudflared.exe'),
+    (Join-Path $env:ProgramFiles 'cloudflared\cloudflared.exe'),
+    (Join-Path $labRoot '.local\bin\cloudflared.exe')
+)
+$tunnelExe = $tunnelCandidates | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+if (-not $tunnelExe) { throw 'Instala cloudflared con winget install --id Cloudflare.cloudflared -e --source winget.' }
+# Se conserva el tunel activo para no cambiar una URL ya compartida.
+$tunnelProcess = $null
+foreach ($candidate in $tunnelCandidates) {
+    if ($candidate) { $tunnelProcess = Get-LabProcess '.local\tunnel.pid' $candidate }
+    if ($tunnelProcess) { break }
+}
 if (-not $tunnelProcess) {
     # Cada reinicio obtiene otra URL; se conserva un registro por proceso.
     if (Test-Path '.local\tunnel.log') { Move-Item -LiteralPath '.local\tunnel.log' -Destination ('.local\tunnel-' + (Get-Date -Format 'yyyyMMddHHmmss') + '.log') }
@@ -52,5 +65,6 @@ if (-not $agentProcess) {
     $agentProcess.Id | Set-Content '.local\agent.pid'
 }
 Write-Host "API publica: $publicUrl/DevOps"
+Write-Host "Cloudflared disponible: $tunnelExe"
 Write-Host 'Pipeline: https://github.com/jorgefprietol/devops-exercise/actions'
 Write-Host 'El agente atiende despliegues durante la sesion configurada; el servicio depende del PC y Docker.'

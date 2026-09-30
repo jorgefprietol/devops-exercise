@@ -23,8 +23,14 @@ JWT recién emitido, válido como máximo cinco minutos y para un solo uso.
 El secreto de firma no se publica. El ejercicio también puede reproducirse
 localmente con las instrucciones del README y credenciales propias.
 
+PRUEBA LOCAL RÁPIDA
+Con Docker y Python instalados, desde la carpeta del proyecto:
+py -3 scripts/demo.py
+En Linux/macOS: python3 scripts/demo.py
+La respuesta y las comprobaciones se muestran en la consola.
+
 RESULTADOS
-41 pruebas correctas y cobertura de líneas de 83,48 %.
+43 pruebas .NET y 3 comprobaciones Python correctas y cobertura de líneas de 85,93 %.
 Integración HTTPS con autenticación y rechazo de repeticiones concurrentes.
 Un nodo de control y dos trabajadores; escalado de 2 a 6 réplicas disponibles.
 Políticas de red que restringen el acceso directo a API y Redis.

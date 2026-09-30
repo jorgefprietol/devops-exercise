@@ -1,0 +1,96 @@
+DECISIONES DE ARQUITECTURA Y SEGURIDAD
+Jorge Fidel Prieto Linares
+
+OBJETIVO
+Cumplir el contrato del ejercicio con una solución pequeña, reproducible y
+verificable. La API no implementa una plataforma de mensajería real.
+
+RECORRIDO DE UNA PETICIÓN
+Cliente --HTTPS/API Key/JWT--> Kong --> API --> Redis
+                                      |
+                                      +--> Respuesta del contrato
+
+Kong valida la entrada y distribuye tráfico. La API valida los datos y el JWT.
+Redis comparte el registro de identificadores usados entre las réplicas;
+SET NX con vencimiento permite que solo una petición concurrente sea aceptada.
+Un diccionario en memoria no resolvería este problema entre contenedores.
+
+DISEÑO DEL CÓDIGO
+ApiHandler: contrato HTTP y validación de entrada.
+TokenValidator: firma, algoritmo, emisor, audiencia, vigencia y jti del JWT.
+IReplayStore: límite entre el caso de uso y el almacenamiento.
+RedisReplayStore: adaptación a Redis. Las pruebas unitarias usan otro adaptador.
+Program: configuración y composición de dependencias.
+
+Se separan responsabilidades y se inyectan dependencias. No se añaden capas,
+bases de datos ni servicios que el caso de uso no necesita. Cambiar Redis por
+otro almacén no debe modificar el contrato HTTP.
+
+DOS FORMAS DE EJECUCIÓN
+1. Docker Compose: demostración rápida, Kong, dos contenedores API y Redis.
+   Requiere Docker y Python >=3.10. No necesita cuenta cloud ni SDK .NET local.
+2. Kubernetes: un nodo de control y dos trabajadores kind; la API y Kong se
+   distribuyen entre trabajadores. HPA ajusta la API de 2 a 6 réplicas.
+   Los tres nodos son lógicos y comparten un equipo físico.
+
+CONTROLES APLICADOS
+- HTTPS exterior; certificado público validado y certificado del origen
+  verificado por cloudflared. La excepción --local se limita a loopback.
+- API Key en encabezado y JWT HS256 breve, firmado y único por transacción.
+- La API Key fija es parte del enunciado, no un secreto de producción.
+- El secreto de firma y la contraseña Redis se generan localmente y no se
+  publican. Kubernetes Secrets codifica datos; no implica cifrado en reposo.
+- Límites de tamaño, validación de contenido y errores sin detalles internos.
+- Cache-Control: no-store y X-Content-Type-Options: nosniff en la API.
+- API sin root, sin escalada, capacidades eliminadas y archivos de solo lectura.
+- Kong sin root ni escalada; seccomp RuntimeDefault para API y Kong en Kubernetes.
+- Administración de Kong desactivada y puertos API/Redis sin exposición al host.
+- NetworkPolicy permite API desde Kong y Redis desde API en el mismo namespace.
+  Requiere un complemento que aplique las políticas; el laboratorio usa Calico.
+- Registros JSON de método, estado, duración y referencia de la API; no se
+  registran cuerpos, encabezados de autenticación ni cadenas de conexión.
+- Dependencias .NET fijadas y restauración bloqueada. Auditoría de dependencias
+  directas y transitivas; una vulnerabilidad conocida impide continuar.
+- Análisis estático, formato, pruebas, cobertura mínima de 80 % e integración
+  con Redis real antes de publicar. Acciones de GitHub fijadas por SHA.
+- Imagen de aplicación desplegada por digest, con versión de origen etiquetada.
+- Permisos GITHUB_TOKEN por etapa y credenciales del cluster fuera de GitHub.
+
+DESPLIEGUE Y RECUPERACIÓN
+GitHub Actions -> imagen GHCR -> solicitud de despliegue -> agente local
+-> Kubernetes -> prueba HTTPS pública -> resultado comunicado a GitHub.
+
+El agente solo acepta solicitudes del flujo y propietario configurados,
+comprueba las etapas previas y excluye pull requests. La publicación de master
+siempre corresponde al entorno production, también en ejecución manual.
+development, staging y production tienen namespaces separados. Los entornos
+adicionales necesitan sus servicios y túneles antes de recibir despliegues.
+El usuario de gh en el PC debe tener acceso a Deployments del repositorio;
+este laboratorio no representa una plataforma compartida entre varios equipos.
+
+La actualización gradual de API mantiene maxUnavailable=0. Las sondas separan
+vida del proceso y disponibilidad del servicio. La reversión de una imagen no
+revierte secretos ni datos. Antes de revertir se comprueba compatibilidad.
+
+LÍMITES Y SIGUIENTES PASOS PARA UNA OPERACIÓN EMPRESARIAL
+El túnel temporal y un PC no proporcionan un SLA. Redis tiene una réplica y
+requiere alta disponibilidad, copias y pruebas de recuperación en producción.
+Los enlaces internos del laboratorio no emplean mTLS; una plataforma real
+debe definir cifrado interno, segmentación de salida y gestión de certificados.
+Los logs son locales; faltan alertas centralizadas y objetivos de servicio.
+La auditoría NuGet no sustituye el escaneo de imágenes, IaC y pruebas dinámicas.
+Las imágenes base y de terceros requieren actualización y revisión de CVE;
+no se afirma que estén libres de vulnerabilidades por superar la auditoría NuGet.
+Una operación continua requiere identidad de despliegue dedicada, acceso mínimo
+por namespace, protección de ramas, gestión centralizada de secretos y rotación.
+.NET 8 termina su soporte el 10 de noviembre de 2026; planificar su migración LTS.
+
+REFERENCIAS PÚBLICAS CONSULTADAS EL 30/09/2026
+NTT DATA Ecuador publica seguridad por diseño y DevSecOps durante el ciclo de
+desarrollo. NTT DATA Group recomienda pruebas y controles automatizados en el
+pipeline. Estas referencias orientan decisiones; no certifican el cumplimiento
+de estándares internos de NTT DATA ni de un cliente ecuatoriano concreto.
+https://ec.nttdata.com/services/cybersecurity/secure-business-enablement
+https://www.nttdata.com/global/en/insights/focus/2024/how-to-turn-devops-into-devsecops
+Cloudflare limita Quick Tunnels a desarrollo y pruebas, sin garantía de servicio:
+https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/

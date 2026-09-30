@@ -1,0 +1,21 @@
+Requisito,Implementación,Comprobación,Alcance
+Repositorio público,GitHub jorgefprietol/devops-exercise,Código y configuración versionados,Credenciales privadas excluidas
+POST /DevOps y JSON exacto,ApiHandler.cs,Pruebas de contrato y smoke.py,Respuesta en inglés conforme al enunciado
+Otros métodos devuelven ERROR,HTTP 405 y cuerpo ERROR,GET PUT PATCH DELETE OPTIONS,HEAD sin cuerpo por especificación HTTP
+API Key del ejercicio,Encabezado X-Parse-REST-API-Key,Credencial válida e inválida,Valor fijo público exigido por el enunciado
+JWT por transacción,TokenValidator y Redis SET NX,Repetición secuencial y concurrente,JWT de máximo cinco minutos con jti nuevo
+Contenedores portables,Dockerfile y compose.yaml,scripts/demo.py,Requiere Docker Linux y Python
+Balanceador con al menos dos nodos,Kong y dos trabajadores Kubernetes,Pods distribuidos por hostname,Compose usa dos contenedores; kind usa nodos lógicos en un PC
+Infraestructura versionada,scripts/deploy.py e infra/kind.yaml,Despliegue y sondas Kubernetes,LoadBalancer o NodePort según entorno
+Pipeline automático,Eventos push y pull_request,GitHub Actions,Pull requests validan sin publicar ni desplegar
+Gestión de dependencias,packages.lock.json y auditoría NuGet,Restauración bloqueada y rechazo de vulnerabilidades,No sustituye escaneo del sistema operativo
+Build y Test,Compilación y Pruebas,Etapas obligatorias antes de imagen,Se agregan Imagen Docker y Despliegue Kubernetes
+Master siempre producción,Selección de entorno y comprobación de ascendencia,Evento push o ejecución manual desde master,production es el entorno lógico del laboratorio
+Múltiples entornos,development staging production,Namespaces y NodePorts independientes,Entornos adicionales necesitan configuración previa de túneles
+Ejecución bajo demanda y versiones,workflow_dispatch y etiquetas vX.Y.Z,Selección de referencia e imagen por digest,La versión de producción debe pertenecer a master
+Pruebas automatizadas,43 pruebas .NET y 3 Python,Artefacto pruebas-y-cobertura,Integración adicional con Kong y Redis reales
+TDD,Cabeceras probadas antes de su implementación,evidence/tdd-seguridad.json,Dos casos fallidos antes del cambio y correctos después
+Cobertura,85.93 por ciento de líneas y 89.47 de ramas,Umbral de líneas 80 por ciento,No equivale a seguridad completa
+Análisis estático,Analizadores .NET y formato,Advertencias tratadas como errores,Incluye analizadores xUnit
+Escalabilidad dinámica,HPA de 2 a 6 réplicas y Metrics Server,Prueba de carga sintética documentada,No es una medida de capacidad HTTP máxima
+Gestor de API y JWT,Kong con key-auth y jwt,Pruebas HTTPS por el gateway,Administración de Kong desactivada

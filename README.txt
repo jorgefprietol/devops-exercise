@@ -7,7 +7,8 @@ al contrato solicitado mediante POST /DevOps.
 
 Repositorio: https://github.com/jorgefprietol/devops-exercise
 Integración y despliegue: https://github.com/jorgefprietol/devops-exercise/actions
-Detalle de entrega: ENTREGA.txt. Operación del entorno: PUBLICACION.txt.
+Detalle de entrega: ENTREGA.txt. Operación: PUBLICACION.txt.
+Decisiones y límites: ARQUITECTURA.txt. Matriz del ejercicio: REQUISITOS.csv.
 
 ARQUITECTURA
 Cliente HTTPS -> Kong -> Servicio Kubernetes -> Réplicas de la API -> Redis
@@ -44,28 +45,45 @@ DECISIONES
 - /health/live y /health/ready son rutas internas que Kong no publica.
 - Los secretos se leen del entorno. .env y .local no se versionan.
 
-EJECUCIÓN LOCAL CON DOCKER COMPOSE
-Requisitos: .NET SDK 8 y su entorno de ejecución, Python >=3.10 y Docker
-con contenedores Linux. Ejecutar los comandos desde la raíz del repositorio.
+PRUEBA RÁPIDA PARA EL EVALUADOR
+Requisitos: Git, Docker Desktop iniciado con contenedores Linux y Python >=3.10.
+No se necesitan cuenta cloud, Kubernetes ni SDK .NET para esta demostración.
+Si se descarga el ZIP del repositorio, Git tampoco es necesario.
 
-py -3 scripts/init_local.py
-docker compose -p jorge-devops-exercise up -d --build --wait --wait-timeout 180
+Windows / PowerShell:
+git clone https://github.com/jorgefprietol/devops-exercise.git
+cd devops-exercise
+py -3 scripts/demo.py
 
-En Linux puede utilizarse python3 en lugar de py -3.
-Para cargar las variables privadas en PowerShell:
+Linux / macOS: sustituir py -3 por python3 en los comandos de Python.
+El script crea secretos propios, construye la imagen, inicia Kong, dos APIs y
+Redis, ejecuta las pruebas HTTPS e imprime la respuesta solicitada.
+La primera ejecución tarda lo que requiera descargar y construir las imágenes.
 
+Repetir las comprobaciones sin reiniciar:
+py -3 scripts/demo.py --test-only
+
+Detener conservando los datos:
+py -3 scripts/demo.py --stop
+
+Conflicto de puerto o red: seleccionar un puerto y una subred privada libres.
+Ejemplo: py -3 scripts/demo.py --port 18443 --subnet 10.203.73.0/24
+Usar las mismas opciones al repetir la prueba o detener ese entorno.
+El arranque recrea los contenedores del proyecto de demostración para usar la
+imagen recién construida y conserva el volumen de Redis. No afecta Kubernetes.
+
+En Docker Desktop aparecen Kong, Redis, api1 y api2. La URL local utiliza HTTPS:
+https://127.0.0.1:8443/DevOps. Abrirla en un navegador envía GET y devuelve ERROR;
+la prueba correcta de POST la ejecuta demo.py con un JWT nuevo.
+--local solo admite el certificado de laboratorio en localhost/127.0.0.1.
+En la URL pública se valida TLS normalmente, sin excepciones.
+
+GENERACIÓN DE JWT
+Para usar el emisor .NET se necesita SDK 8 y cargar primero las variables:
 Get-Content .env | ForEach-Object {
   $parts = $_ -split '=', 2
   [Environment]::SetEnvironmentVariable($parts[0], $parts[1], 'Process')
 }
-
-Prueba integral local:
-py -3 scripts/smoke.py https://localhost:8443 --local
-
---local permite el certificado de laboratorio únicamente en localhost.
-En la URL pública se valida TLS normalmente, sin excepciones.
-
-GENERACIÓN DE JWT
 dotnet build tools/TokenIssuer -c Release
 $jwt = dotnet tools/TokenIssuer/bin/Release/net8.0/TokenIssuer.dll
 
@@ -79,11 +97,14 @@ Desde otra carpeta hay que proporcionar la ruta absoluta del script.
 Abrir /DevOps en el navegador envía GET y no comprueba el caso correcto de POST.
 
 COMPILACIÓN Y PRUEBAS
+Para desarrollo y pruebas unitarias instalar .NET SDK 8 y su runtime.
 dotnet restore --locked-mode
+py -3 scripts/dependency_audit.py
 dotnet build -c Release --no-restore -warnaserror
 dotnet format --verify-no-changes --no-restore
 dotnet test -c Release --no-restore --collect:"XPlat Code Coverage" --results-directory evidence/green
 py -3 scripts/coverage_gate.py 80
+py -3 -m unittest discover -s tests -p "test_*.py"
 
 El umbral de cobertura de líneas es 80%. Las pruebas verifican el contrato,
 credenciales, vigencia, repeticiones concurrentes y validación del cuerpo.
@@ -102,6 +123,7 @@ Solicitud de cambios a master/develop: compilación y pruebas.
 Push a master: despliegue a production tras superar las comprobaciones.
 Push a develop: despliegue a development. Etiqueta v*: despliegue a staging.
 Ejecución manual: selección de entorno y, opcionalmente, etiqueta vX.Y.Z.
+Si la rama seleccionada es master, el destino siempre es production.
 Los entornos adicionales requieren su configuración y túnel correspondientes.
 
 INFRAESTRUCTURA Y LÍMITES

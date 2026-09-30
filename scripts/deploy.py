@@ -31,7 +31,8 @@ def resources(env, image):
                  'nodeTaintsPolicy': 'Honor', 'matchLabelKeys': ['pod-template-hash'],
                  'whenUnsatisfiable': 'DoNotSchedule', 'labelSelector': {'matchLabels': {'app': label}}}]
     security = {'runAsNonRoot': True, 'allowPrivilegeEscalation': False,
-                'readOnlyRootFilesystem': True, 'capabilities': {'drop': ['ALL']}}
+                'readOnlyRootFilesystem': True, 'capabilities': {'drop': ['ALL']},
+                'seccompProfile': {'type': 'RuntimeDefault'}}
     signer = os.environ['JWT_SECRET']
     if len(signer.encode()) < 32:
         raise ValueError('JWT_SECRET debe contener al menos 32 bytes')
@@ -83,6 +84,8 @@ def resources(env, image):
             'template': {'metadata': {'labels': {'app': 'kong'}, 'annotations': {'config-hash': stamp}},
               'spec': {'automountServiceAccountToken': False, 'topologySpreadConstraints': spread('kong'),
                 'containers': [{'name': 'kong', 'image': 'kong:3.9', 'resources': limits('100m', '256Mi'),
+                  'securityContext': {'runAsUser': 1001, 'runAsNonRoot': True, 'allowPrivilegeEscalation': False,
+                      'capabilities': {'drop': ['ALL']}, 'seccompProfile': {'type': 'RuntimeDefault'}},
                   'env': [envvar(k, v) for k, v in {
                       'KONG_DATABASE':'off', 'KONG_ADMIN_LISTEN':'off', 'KONG_PROXY_LISTEN':'0.0.0.0:8443 ssl',
                       'KONG_STATUS_LISTEN':'0.0.0.0:8100', 'KONG_DECLARATIVE_CONFIG':'/kong/kong.json',

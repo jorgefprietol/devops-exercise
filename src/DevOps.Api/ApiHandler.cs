@@ -48,7 +48,6 @@ public static class ApiHandler
             { await Error(context, 409); return; }
         }
         catch (ReplayStoreUnavailableException) { await Error(context, 503); return; }
-        context.Response.Headers["Cache-Control"] = "no-store";
         await context.Response.WriteAsJsonAsync(new { message = $"Hello {body.To} your message will be sent" });
     }
     private static async Task Error(HttpContext context, int status)

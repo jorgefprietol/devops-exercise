@@ -34,9 +34,12 @@ services:
       KONG_ADMIN_LISTEN: 'off'
       KONG_PROXY_LISTEN: '0.0.0.0:8443 ssl'
       KONG_STATUS_LISTEN: '0.0.0.0:8100'
+      KONG_NGINX_WORKER_PROCESSES: '2'
     volumes: [./.local/kong.json:/kong/kong.json:ro]
-    ports: ['127.0.0.1:8443:8443']
+    ports: ['127.0.0.1:${LAB_PORT:-8443}:8443']
     depends_on: [api1, api2]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
     healthcheck:
       test: [CMD, kong, health]
       interval: 5s

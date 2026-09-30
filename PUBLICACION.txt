@@ -14,6 +14,8 @@ Cloudflare verifica el certificado del origen mediante .local/tls.crt.
 El cliente utiliza TLS público válido y debe presentar API Key y JWT.
 
 INICIAR O REANUDAR
+La demostración rápida para evaluadores usa scripts/demo.py (ver README.txt).
+Esta sección opera el laboratorio Kubernetes del propietario del repositorio.
 Abrir Docker Desktop y ejecutar desde la raíz del repositorio:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-Lab.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test-PublicApi.ps1
@@ -34,10 +36,15 @@ Requiere Docker, .NET 8, Python, kubectl, gh autenticado, kind y cloudflared.
 bootstrap_addons.py requiere PyYAML y cryptography; instalarlos en un entorno
 virtual dedicado. A continuación:
 py -3 scripts/init_local.py
-kind create cluster --config infra/kind.yaml --kubeconfig .local/kubeconfig
-py -3 scripts/bootstrap_addons.py
+kind create cluster --config infra/kind.yaml --kubeconfig .local/kubeconfig --image kindest/node:v1.34.11@sha256:44e222ee2132dab25ff87301682f89eb82c7880ea3a1bf543bfe9708fd08d67d
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install PyYAML cryptography
+.\.venv\Scripts\python.exe scripts/bootstrap_addons.py
 
-Situar cloudflared.exe en .local/bin y ejecutar Start-Lab.ps1.
+En Windows instalar: winget install --id Cloudflare.cloudflared -e --source winget
+Start-Lab.ps1 lo detecta en PATH o Program Files y admite .local/bin como respaldo.
+Si ya existe un túnel del laboratorio, lo conserva para mantener su URL.
+Ejecutar Start-Lab.ps1.
 Comprobar que la subred de Docker no se solape con otras redes.
 
 ENTORNOS

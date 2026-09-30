@@ -136,7 +136,7 @@ public class SecurityTests
     {
         await using var app = new ApiFactory(); using var client = app.CreateClient(); var token = ApiFactory.Token();
         var responses = await Task.WhenAll(Enumerable.Range(0, 20).Select(_ => client.SendAsync(ApiFactory.Request(token))));
-        Assert.Single(responses.Where(r => r.StatusCode == HttpStatusCode.OK));
+        Assert.Single(responses, r => r.StatusCode == HttpStatusCode.OK);
         Assert.Equal(19, responses.Count(r => r.StatusCode == HttpStatusCode.Conflict));
     }
     [Fact]
