@@ -36,6 +36,8 @@ Cloudflare no es necesario para probar desde el equipo local.
 
 ## Credenciales
 
+Si el candidato te proporciona un JWT para probar su instalación, usa una petición POST independiente con ese token en `X-JWT-KWY`, sin script de firma. No necesitas su `jwt_secret`. Consulta [HOST_JWT.md](../HOST_JWT.md) para emitir, entregar y comprobar un token de un solo uso.
+
 Los entornos de `.local/postman` contienen el secreto de firma y no se versionan. Úsalos en tu espacio privado de Postman: no los publiques, compartas ni adjuntes a la entrega. El tipo `secret` oculta la visualización, pero el archivo JSON sigue conteniendo el valor. El evaluador puede generar sus propias credenciales al arrancar su copia del proyecto y ejecutar el exportador. La plantilla pública contiene `jwt_secret` vacío y no permite enviar una petición válida hasta configurarlo.
 
 ## Interpretar los resultados

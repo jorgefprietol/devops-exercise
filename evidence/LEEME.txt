@@ -3,7 +3,12 @@ RESULTADOS DE VALIDACIÓN
 El resumen conserva las comprobaciones locales y remotas realizadas.
 Los registros completos de cada versión se consultan en GitHub Actions.
 Los ciclos TDD documentados corresponden a cambios concretos de cabeceras
-y portabilidad del despliegue. El conjunto contiene 43 pruebas .NET y 18 Python.
+y portabilidad del despliegue. El conjunto contiene 43 pruebas .NET y 21 Python.
 No se presenta la existencia de pruebas como evidencia de TDD de todo el código.
 Las pruebas locales de seguridad usan un almacén en memoria; la integración
 comprueba Redis real. La cobertura no implica cobertura completa del adaptador.
+
+host-jwt-local.json registra la petición cURL en Compose y Kubernetes:
+JWT nuevo 200; reutilizado 409; otro nuevo 200; diez envíos simultáneos del
+mismo JWT producen un 200 y nueve 409. No contiene tokens ni secretos.
+Incluye el resultado rojo/verde observado al añadir el emisor Python.

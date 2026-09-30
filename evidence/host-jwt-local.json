@@ -1,0 +1,46 @@
+{
+  "fecha_utc": "2026-09-30T23:41:22.562944+00:00",
+  "base_git": "dad2c9a80e959a72903a0dc9675ebcf5422c232f",
+  "alcance": "Prueba cURL en loopback, certificado local autofirmado; no verifica disponibilidad pública.",
+  "emisor": "scripts/issue_jwt.py de esta revisión; JWT y claves excluidos del informe",
+  "resultados": [
+    {
+      "instalacion": "Compose",
+      "HOST": "127.0.0.1:8443",
+      "url": "https://127.0.0.1:8443/DevOps",
+      "jwt_nuevo": 200,
+      "jwt_reutilizado": 409,
+      "otro_jwt_nuevo": 200,
+      "respuesta": {
+        "message": "Hello Juan Perez your message will be sent"
+      },
+      "identificadores_distintos": true,
+      "concurrencia_mismo_jwt": {
+        "peticiones": 10,
+        "aceptadas": 1,
+        "rechazadas": 9
+      }
+    },
+    {
+      "instalacion": "Kubernetes production",
+      "HOST": "127.0.0.1:9443",
+      "url": "https://127.0.0.1:9443/DevOps",
+      "jwt_nuevo": 200,
+      "jwt_reutilizado": 409,
+      "otro_jwt_nuevo": 200,
+      "respuesta": {
+        "message": "Hello Juan Perez your message will be sent"
+      },
+      "identificadores_distintos": true,
+      "concurrencia_mismo_jwt": {
+        "peticiones": 10,
+        "aceptadas": 1,
+        "rechazadas": 9
+      }
+    }
+  ],
+  "tdd_emisor": {
+    "antes": "ModuleNotFoundError: issue_jwt, observado antes de implementar el emisor",
+    "despues": "21 pruebas Python correctas, incluidas 3 nuevas de emisión y aislamiento de credenciales"
+  }
+}

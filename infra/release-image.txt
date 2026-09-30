@@ -1,1 +1,1 @@
-ghcr.io/jorgefprietol/devops-exercise@sha256:fad536f0d9b22edbfe58a5fb897ab4d2c62331bf95d534fc0bb060e1d0f85bf2
+ghcr.io/jorgefprietol/devops-exercise@sha256:d0540c50241a1ff5d966a90ebc6ee8c555654bc46e86e74981c87feb0072055e

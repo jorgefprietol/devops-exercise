@@ -92,6 +92,11 @@ la prueba correcta de POST la ejecuta demo.py con un JWT nuevo.
 En la URL pública se valida TLS normalmente, sin excepciones.
 
 GENERACIÓN DE JWT
+Emisor con Python, sin instalar SDK .NET:
+py -3 scripts/issue_jwt.py
+Cada ejecución imprime únicamente un JWT nuevo, válido durante cinco minutos.
+HOST, cURL exacto y entrega al evaluador sin compartir la firma: HOST_JWT.md.
+
 Para usar el emisor .NET se necesita SDK 8 y cargar primero las variables:
 Get-Content .env | ForEach-Object {
   $parts = $_ -split '=', 2
