@@ -1,1 +1,0 @@
-PASS: YAML parsed; four stages and dependencies present. GitHub execution remains pending.

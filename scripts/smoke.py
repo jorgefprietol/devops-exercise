@@ -1,4 +1,4 @@
-"""End-to-end contract checks through Kong. --local allows only localhost TLS demo."""
+"""Comprueba el contrato a través de Kong. --local se limita al entorno local."""
 import argparse
 import base64
 import hashlib
@@ -32,7 +32,7 @@ def main():
     args = parser.parse_args()
     parsed = urllib.parse.urlparse(args.url)
     if parsed.scheme != 'https' or (args.local and parsed.hostname not in ('localhost', '127.0.0.1')):
-        raise SystemExit('Use HTTPS; --local is restricted to localhost.')
+        raise SystemExit('Utiliza HTTPS; --local solo admite localhost.')
     ctx = ssl._create_unverified_context() if args.local else ssl.create_default_context()
     def send(method='POST', jwt=None, api_key=None):
         data = json.dumps({'message': 'This is a test', 'to': 'Juan Perez', 'from': 'Rita Asturia', 'timeToLifeSec': 45}).encode()
@@ -47,7 +47,7 @@ def main():
     jwt = token()
     status, body = send(jwt=jwt)
     assert status == 200 and json.loads(body) == {'message': 'Hello Juan Perez your message will be sent'}, (status, body)
-    assert send(jwt=jwt)[0] == 409, 'Replay must be rejected across replicas'
+    assert send(jwt=jwt)[0] == 409, 'Las réplicas deben rechazar la reutilización del JWT'
     for method in ('GET', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'):
         assert send(method) == (405, 'ERROR'), method
     assert send('HEAD') == (405, '')
@@ -57,7 +57,7 @@ def main():
     with ThreadPoolExecutor(max_workers=10) as pool:
         statuses = list(pool.map(lambda _: send(jwt=jwt)[0], range(10)))
     assert statuses.count(200) == 1 and statuses.count(409) == 9, statuses
-    print('PASS: exact contract, methods, authentication and concurrent replay through gateway.')
+    print('CORRECTO: contrato, métodos, autenticación y rechazo de JWT repetidos, incluida concurrencia.')
 
 
 if __name__ == '__main__':

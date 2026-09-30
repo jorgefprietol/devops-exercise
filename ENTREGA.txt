@@ -1,0 +1,35 @@
+ENTREGA DEL EJERCICIO DEVOPS
+Jorge Fidel Prieto Linares
+
+Repositorio público:
+https://github.com/jorgefprietol/devops-exercise
+Integración y despliegue:
+https://github.com/jorgefprietol/devops-exercise/actions
+
+CONTENIDO
+API y emisor de JWT; pruebas de contrato y seguridad; Dockerfile; Kong;
+Redis; dos instancias locales; infraestructura Kubernetes y escalado HPA;
+integración y despliegue automatizados; instrucciones de validación y operación.
+
+COMPROBACIÓN
+1. Abrir la ejecución más reciente finalizada correctamente en Actions.
+2. Revisar Compilación, Pruebas, Imagen Docker y Despliegue Kubernetes.
+3. Descargar pruebas-y-cobertura.
+4. Consultar el enlace público en el resumen del despliegue.
+5. Ejecutar POST /DevOps con la API Key del ejercicio y un JWT vigente.
+
+La URL pública es temporal. Para coordinar su comprobación se proporciona un
+JWT recién emitido, válido como máximo cinco minutos y para un solo uso.
+El secreto de firma no se publica. El ejercicio también puede reproducirse
+localmente con las instrucciones del README y credenciales propias.
+
+RESULTADOS
+41 pruebas correctas y cobertura de líneas de 83,48 %.
+Integración HTTPS con autenticación y rechazo de repeticiones concurrentes.
+Un nodo de control y dos trabajadores; escalado de 2 a 6 réplicas disponibles.
+Políticas de red que restringen el acceso directo a API y Redis.
+
+ALCANCE
+Kubernetes local y túnel HTTPS. Los nodos comparten un PC; la disponibilidad
+depende del equipo, Docker y el túnel. Redis tiene una réplica persistente.
+Se implementa el contrato de respuesta sin una cola de envío real.

@@ -13,7 +13,7 @@ public sealed record SecuritySettings(string ApiKey, string JwtSecret, string Is
         var key = config["API_KEY"] ?? "";
         var secret = config["JWT_SECRET"] ?? "";
         if (string.IsNullOrWhiteSpace(key) || Encoding.UTF8.GetByteCount(secret) < 32)
-            throw new InvalidOperationException("Set API_KEY and JWT_SECRET (at least 32 UTF-8 bytes).");
+            throw new InvalidOperationException("Configura API_KEY y JWT_SECRET (al menos 32 bytes UTF-8).");
         return new(key, secret, "devops-candidate", "devops-api");
     }
 

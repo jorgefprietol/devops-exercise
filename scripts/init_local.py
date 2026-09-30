@@ -1,4 +1,4 @@
-"""Creates private local configuration once. Does not start Docker or deploy."""
+"""Crea la configuración privada local. El inicio y el despliegue se ejecutan por separado."""
 import json
 import os
 from pathlib import Path
@@ -17,4 +17,4 @@ for line in env.read_text(encoding='utf-8').splitlines():
         os.environ[key] = value
 (root / '.local').mkdir(exist_ok=True)
 (root / '.local/kong.json').write_text(json.dumps(config(local=True), indent=2), encoding='utf-8')
-print('Private .env and .local/kong.json ready. Do not commit them.')
+print('Configuración privada preparada en .env y .local/kong.json. Estos archivos no se versionan.')

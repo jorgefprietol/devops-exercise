@@ -1,7 +1,7 @@
-"""Pull trusted deployment requests from one repository; keep cluster access local.
+"""Procesa solicitudes verificadas del repositorio y conserva el acceso local al cluster.
 
-Run with Python after starting kind and the HTTPS tunnel. No inbound PC port or
-GitHub self-hosted runner is exposed. Never processes pull-request workflows.
+Se inicia después de kind y del túnel HTTPS. Consulta GitHub mediante conexiones
+salientes y excluye las ejecuciones originadas por solicitudes de cambios.
 """
 from pathlib import Path
 import argparse
@@ -43,7 +43,8 @@ def validate(deployment):
     if run['actor']['login'] != OWNER or run['path'] != '.github/workflows/ci-cd.yml': return False
     if run['head_repository']['full_name'] != REPO: return False
     jobs = gh('actions/runs/' + str(run['id']) + '/jobs?per_page=100')['jobs']
-    if not all(any(j['name'] == name and j['conclusion'] == 'success' for j in jobs) for name in ('build', 'test', 'package')): return False
+    expected = ({'build', 'Compilación'}, {'test', 'Pruebas'}, {'package', 'Imagen Docker'})
+    if not all(any(j['name'] in names and j['conclusion'] == 'success' for j in jobs) for names in expected): return False
     sha = deployment['sha']
     if not re.fullmatch('[a-f0-9]{40}', sha): return False
     subprocess.run(['git', 'fetch', 'origin', 'master', '--tags'], cwd=ROOT, check=True, capture_output=True)
@@ -62,7 +63,7 @@ def deploy(deployment, public_url):
     with zipfile.ZipFile(io.BytesIO(archive)) as package:
         for name in package.namelist():
             resolved = (output / name).resolve()
-            if not resolved.is_relative_to(output.resolve()): raise ValueError('Unsafe archive path')
+            if not resolved.is_relative_to(output.resolve()): raise ValueError('Ruta no permitida dentro del archivo')
         package.extractall(output)
     env = os.environ.copy()
     for line in (ROOT / '.env').read_text().splitlines():
@@ -85,7 +86,7 @@ def main():
     state_file = PRIVATE / 'agent-processed.json'
     processed = set(json.loads(state_file.read_text())) if state_file.exists() else set()
     end = time.monotonic() + args.hours * 3600
-    print(f'Listening for trusted deployments from {REPO}; expires in {args.hours} hours.', flush=True)
+    print(f'Esperando despliegues verificados de {REPO}; sesión de {args.hours} horas.', flush=True)
     while time.monotonic() < end:
         try:
             for item in reversed(gh('deployments?per_page=10')):
@@ -99,21 +100,21 @@ def main():
                 urls = json.loads((PRIVATE / 'public_urls.json').read_text())
                 url = urls.get(item['environment'])
                 if not url:
-                    status(ident, 'failure', '', 'Start an HTTPS tunnel for the selected environment first.')
+                    status(ident, 'failure', '', 'Inicia primero el túnel HTTPS del entorno seleccionado.')
                     processed.add(ident)
                     continue
-                status(ident, 'in_progress', url, 'Applying verified image to local Kubernetes.')
+                status(ident, 'in_progress', url, 'Aplicando la imagen verificada en Kubernetes local.')
                 try:
                     deploy(item, url)
-                    status(ident, 'success', url, 'Kubernetes rollout and public HTTPS smoke tests passed.')
-                    print(f'Deployment {ident}: SUCCESS {url}', flush=True)
+                    status(ident, 'success', url, 'Despliegue y pruebas HTTPS públicas completados correctamente.')
+                    print(f'Despliegue {ident}: CORRECTO {url}', flush=True)
                 except Exception as error:
-                    status(ident, 'failure', url, 'Local deployment failed; inspect the local agent log.')
-                    print(f'Deployment {ident}: FAILED {type(error).__name__}', flush=True)
+                    status(ident, 'failure', url, 'Falló el despliegue local; revisa el registro del agente.')
+                    print(f'Despliegue {ident}: ERROR {type(error).__name__}', flush=True)
                 processed.add(ident)
                 state_file.write_text(json.dumps(sorted(processed)))
         except Exception as error:
-            print(f'Agent polling: {type(error).__name__}; retrying.', flush=True)
+            print(f'Consulta del agente: {type(error).__name__}; se reintentará.', flush=True)
         time.sleep(15)
 
 if __name__ == '__main__': main()

@@ -1,159 +1,135 @@
-SOLUCIÓN DEL EJERCICIO DEVOPS
-Jorge Prieto - Material de preparación y laboratorio
+EJERCICIO DEVOPS
+Jorge Fidel Prieto Linares
 
-Implementación .NET 8 con Kong DB-less, Redis, Docker Compose, Kubernetes y GitHub Actions.
-El único endpoint de negocio es POST /DevOps. Las rutas /health/live y /health/ready
-son internas: Kong no las publica. No hay una cola ni un envío real de mensajes;
-se implementa exactamente la respuesta pedida en el ejercicio.
+API REST implementada con .NET, Kong, Redis, Docker, Kubernetes y GitHub Actions.
+El servicio valida credenciales, controla la reutilización de JWT y responde
+al contrato solicitado mediante POST /DevOps.
 
-ARCHIVOS IMPORTANTES
-src/DevOps.Api/            API, validación JWT, contrato y control de repetición
-tools/TokenIssuer/         Generador CLI de JWT; no agrega un endpoint público
-tests/DevOps.Api.Tests/    Pruebas de contrato y seguridad
-scripts/smoke.py           Pruebas HTTPS a través del gateway y Redis real
-scripts/kong_config.py     Gestor de API y balanceo declarativos
-scripts/deploy.py          Infraestructura Kubernetes como código
-infra/kind.yaml            Laboratorio con control-plane y dos workers
-.github/workflows/ci-cd.yml Pipeline automático y manual
-evidence/                 Resultados reales locales, sin credenciales
+Repositorio: https://github.com/jorgefprietol/devops-exercise
+Integración y despliegue: https://github.com/jorgefprietol/devops-exercise/actions
+Detalle de entrega: ENTREGA.txt. Operación del entorno: PUBLICACION.txt.
 
-REQUISITOS LOCALES
-.NET SDK 8 o 9 con runtime 8, Python 3 y Docker Desktop con contenedores Linux.
-Este equipo tenía .NET 8 instalado. Antes de una puesta en producción duradera,
-recomiendo migrar y volver a validar en .NET 10 LTS; .NET 8 termina soporte el
-10 de noviembre de 2026. Las imágenes de infraestructura deben actualizarse y
-fijarse a un digest revisado según la política de la organización.
+ARQUITECTURA
+Cliente HTTPS -> Kong -> Servicio Kubernetes -> Réplicas de la API -> Redis
 
-INICIO EN POWERSHELL DESDE ESTA CARPETA
-python scripts/init_local.py
+Kong controla la entrada y comprueba API Key y JWT. La API valida el cuerpo,
+la firma, el emisor, la audiencia, la vigencia y el identificador de transacción.
+Redis registra ese identificador mediante una operación atómica y con vencimiento.
+Una segunda petición con el mismo JWT aceptado devuelve HTTP 409.
+
+CONTRATO
+POST /DevOps
+Encabezados: X-Parse-REST-API-Key y X-JWT-KWY
+Content-Type: application/json
+
+Solicitud:
+{"message":"This is a test","to":"Juan Perez","from":"Rita Asturia","timeToLifeSec":45}
+
+Respuesta HTTP 200:
+{"message":"Hello Juan Perez your message will be sent"}
+
+X-JWT-KWY y los textos del contrato se conservan como aparecen en el enunciado.
+El cliente envía el JWT sin Bearer; Kong realiza la adaptación internamente.
+GET, PUT, PATCH, DELETE y OPTIONS: HTTP 405 y texto ERROR.
+HEAD: HTTP 405 sin cuerpo, conforme al protocolo HTTP.
+Credenciales inválidas: 401; Kong puede responder 403 para una API Key incorrecta.
+Cuerpo inválido: 400. Tipo no admitido: 415. Cuerpo excesivo: 413.
+JWT reutilizado: 409. Redis no disponible: 503. Ruta inexistente: 404.
+
+DECISIONES
+- Se implementa la respuesta indicada; no se incluye una cola de envío real.
+- timeToLifeSec pertenece al mensaje y admite de 1 a 86400 segundos.
+- La vigencia del JWT es independiente: máximo cinco minutos.
+- El JWT se emite por consola, sin añadir otra ruta pública.
+- /health/live y /health/ready son rutas internas que Kong no publica.
+- Los secretos se leen del entorno. .env y .local no se versionan.
+
+EJECUCIÓN LOCAL CON DOCKER COMPOSE
+Requisitos: .NET SDK 8 y su entorno de ejecución, Python >=3.10 y Docker
+con contenedores Linux. Ejecutar los comandos desde la raíz del repositorio.
+
+py -3 scripts/init_local.py
 docker compose -p jorge-devops-exercise up -d --build --wait --wait-timeout 180
 
-Importar el entorno privado sin imprimir secretos:
+En Linux puede utilizarse python3 en lugar de py -3.
+Para cargar las variables privadas en PowerShell:
+
 Get-Content .env | ForEach-Object {
   $parts = $_ -split '=', 2
   [Environment]::SetEnvironmentVariable($parts[0], $parts[1], 'Process')
 }
 
-Probar el sistema completo:
-python scripts/smoke.py https://localhost:8443 --local
+Prueba integral local:
+py -3 scripts/smoke.py https://localhost:8443 --local
 
-El parámetro --local tolera el certificado autofirmado generado por Kong SOLO
-en localhost. Una entrega remota exige DNS y certificado válido; no usar -k.
+--local permite el certificado de laboratorio únicamente en localhost.
+En la URL pública se valida TLS normalmente, sin excepciones.
 
-GENERAR JWT Y REPRODUCIR EL CURL DEL EJERCICIO
+GENERACIÓN DE JWT
 dotnet build tools/TokenIssuer -c Release
 $jwt = dotnet tools/TokenIssuer/bin/Release/net8.0/TokenIssuer.dll
-$baseUrl = 'https://localhost:8443'
-$body = '{ "message":"This is a test", "to":"Juan Perez", "from":"Rita Asturia", "timeToLifeSec":45 }'
-curl.exe -k -i -X POST "$baseUrl/DevOps" `
-  -H "X-Parse-REST-API-Key: $env:API_KEY" `
-  -H "X-JWT-KWY: $jwt" `
-  -H 'Content-Type: application/json' --data-raw $body
 
-Para un HOST remoto: quitar -k y establecer $baseUrl con https:// y dominio.
-No usar $HOST en PowerShell: es una variable reservada. Generar un JWT nuevo
-antes de cada transacción; repetir uno aceptado devuelve 409.
-Respuesta 200: {"message":"Hello Juan Perez your message will be sent"}
+El emisor necesita JWT_SECRET en su entorno. El secreto de firma no se publica.
+Cada petición de negocio requiere un JWT nuevo. Para comprobar el despliegue
+público desde el equipo configurado:
 
-VALIDACIÓN DEL CÓDIGO
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test-PublicApi.ps1
+
+Desde otra carpeta hay que proporcionar la ruta absoluta del script.
+Abrir /DevOps en el navegador envía GET y no comprueba el caso correcto de POST.
+
+COMPILACIÓN Y PRUEBAS
 dotnet restore --locked-mode
 dotnet build -c Release --no-restore -warnaserror
 dotnet format --verify-no-changes --no-restore
-dotnet test -c Release --no-restore --collect:'XPlat Code Coverage' --results-directory evidence/green
-python scripts/coverage_gate.py 80
+dotnet test -c Release --no-restore --collect:"XPlat Code Coverage" --results-directory evidence/green
+py -3 scripts/coverage_gate.py 80
 
-Los tests de API usan un almacén de repetición en memoria como doble de prueba.
-La prueba smoke verifica Redis real, Kong y ambos contenedores. No confundir ambos
-niveles ni afirmar que la cobertura del adaptador Redis es completa.
+El umbral de cobertura de líneas es 80%. Las pruebas verifican el contrato,
+credenciales, vigencia, repeticiones concurrentes y validación del cuerpo.
+La prueba integral utiliza Kong, dos instancias de API y Redis real.
+Los resultados remotos están en el artefacto pruebas-y-cobertura de Actions.
 
-CONTRATO Y SUPUESTOS
-Se conserva el header X-JWT-KWY tal como aparece, aunque parezca una errata.
-Kong espera Bearer: una pre-function normaliza internamente el JWT a Authorization
-y conserva X-JWT-KWY para la API. Un Authorization enviado por el cliente se
-descarta en esa normalización; no reemplaza el header exigido en el ejercicio.
-JWT: HS256, iss=devops-candidate, aud=devops-api, jti UUID único, iat, nbf, exp.
-El CLI lo emite con 5 minutos de validez. La API limita su vida a 300 segundos.
-timeToLifeSec se valida entre 1 y 86400. Es un campo del mensaje, no la vida del
-JWT. El enunciado no define procesamiento asíncrono ni tiempos de entrega.
-API Key de evaluación: scripts/init_local.py la obtiene del valor del enunciado;
-no es el secreto con el que se firma el JWT. El secreto se genera aleatoriamente.
-GET/PUT/PATCH/DELETE/OPTIONS: 405 con texto ERROR y Allow: POST.
-HEAD: 405 sin cuerpo, porque HTTP prohíbe contenido en la respuesta a HEAD.
-Autenticación inválida: 401 (Kong puede dar 403 si la API Key es incorrecta).
-Body inválido: 400; Content-Type incorrecto: 415; tamaño excesivo: 413.
-JWT reutilizado: 409; Redis no disponible: 503; ruta inexistente: 404.
-Las respuestas de autenticación del gateway son las propias de Kong; el requisito
-de texto ERROR aplica a los métodos no permitidos en /DevOps.
+INTEGRACIÓN Y DESPLIEGUE
+Compilación -> Pruebas -> Imagen Docker -> Despliegue Kubernetes
 
-KUBERNETES Y ENTREGA REAL
-El pipeline despliega en un cluster previamente preparado. No crea cuentas cloud.
-Se requieren Kubernetes >=1.30, dos workers, Metrics Server, StorageClass por
-defecto, CNI que aplique NetworkPolicy e implementación de Service LoadBalancer.
-En kind se activa LAB_MODE=kind: NodePort y túnel HTTPS. La variante cloud usa LoadBalancer.
-En AWS/EKS y Azure/AKS el controlador cloud debe estar instalado/configurado.
-La API usa 2 réplicas, HPA 2..6 a 65% CPU y distribución entre dos nodos.
-HPA crea pods; el autoscaler del proveedor agrega nodos, y se configura aparte.
-Kong usa dos réplicas; el Service público balancea hacia ellas, y un Service
-interno reparte conexiones hacia los pods API. No se exige afinidad de sesión.
-Redis usa una réplica con PVC y AOF appendfsync always: es una limitación de
-disponibilidad explícita. Una pérdida de datos puede permitir repetir JWT aún
-vigentes; para producción, diseñar Redis HA y la recuperación según ese riesgo.
+Las etapas se ejecutan en Ubuntu 24.04. Las acciones se fijan por SHA y utilizan
+Node.js 24. La imagen se identifica por su digest. Un agente local verifica la
+solicitud, aplica la versión y comunica el resultado de la prueba HTTPS.
+El acceso al cluster y las credenciales de la aplicación permanecen locales.
 
-CONFIGURACIÓN ACTUAL EN GITHUB
-Repositorio público: https://github.com/jorgefprietol/devops-exercise
-Pipeline gráfico: https://github.com/jorgefprietol/devops-exercise/actions
-La publicación real usa CI remoto y un agente local que consume solicitudes de
-GitHub Deployments. Las credenciales Kubernetes y los secretos permanecen en el
-PC. Ver PUBLICACION.txt para la arquitectura, inicio y límites del laboratorio.
-El pipeline no contiene actualmente un kubeconfig cloud ni secrets de Azure/AWS.
-El job Deploy espera el resultado del agente y la prueba HTTPS pública.
-La imagen GHCR es pública y se despliega por digest SHA256.
+Solicitud de cambios a master/develop: compilación y pruebas.
+Push a master: despliegue a production tras superar las comprobaciones.
+Push a develop: despliegue a development. Etiqueta v*: despliegue a staging.
+Ejecución manual: selección de entorno y, opcionalmente, etiqueta vX.Y.Z.
+Los entornos adicionales requieren su configuración y túnel correspondientes.
 
-EVENTOS DEL PIPELINE
-PR a master/develop -> Build y Test, sin publicar ni desplegar.
-Push a develop -> Build, Test, Package y Deploy en development.
-Push a master -> Build, Test, Package y Deploy automático en production.
-Push de tag v* -> validación y despliegue en staging.
-workflow_dispatch -> elegir environment y opcionalmente tag vX.Y.Z.
-Producción solo admite commits alcanzables desde master; un master sin versión
-manual siempre apunta a producción. Las etiquetas publicadas deben ser inmutables.
-Se despliega por digest de imagen, no por latest. Conservar el digest anterior
-para rollback. Los tags seleccionan código versionado; esta implementación lo
-reconstruye. Para promover exactamente el mismo binario entre entornos, guardar
-y promover el digest del release en vez de reconstruirlo.
+INFRAESTRUCTURA Y LÍMITES
+kind ejecuta un nodo de control y dos trabajadores en Docker. Son nodos lógicos
+en un PC, no servidores físicamente independientes. Calico aplica políticas de
+red y Metrics Server entrega las métricas al HPA. La API escala de 2 a 6 réplicas;
+Kong mantiene 2 réplicas. La distribución respeta taints y revisiones de despliegue.
+Redis tiene una réplica persistente y no ofrece alta disponibilidad.
 
-VARIANTE CLOUD: VARIANTE CLOUD: DESPLIEGUE BAJO DEMANDA DESDE LINUX
-Exportar API_KEY, JWT_SECRET, REDIS_PASSWORD, TLS_CRT_B64, TLS_KEY_B64, un
-kubeconfig autorizado y además:
-  DEPLOY_ENV=staging
-  IMAGE=ghcr.io/usuario/repositorio@sha256:<digest real de 64 caracteres>
-  PUBLIC_URL=https://dominio-con-certificado-valido
-bash scripts/rollout.sh
+El túnel HTTPS tiene una dirección temporal. El PC, Docker y el túnel deben
+permanecer activos. La operación continua requiere infraestructura remota,
+dominio estable y una estrategia de disponibilidad para Redis.
+.NET 8 termina su soporte el 10 de noviembre de 2026; una evolución productiva
+debe contemplar la migración a una versión LTS vigente.
 
-El paso comprueba rollout y luego ejecuta smoke HTTPS. Un cambio de secretos
-fuerza una nueva revisión mediante un hash de configuración. La rotación de
-JWT con una sola clave requiere ventana coordinada o ampliar a dos claves con
-kid; esa rotación sin interrupción no está implementada en este ejemplo.
-
-ROLLBACK DE APLICACIÓN
+RECUPERACIÓN
 kubectl -n devops-production rollout history deployment/devops-api
 kubectl -n devops-production rollout undo deployment/devops-api
 kubectl -n devops-production rollout status deployment/devops-api
-Repetir smoke con JWT nuevo. rollout undo NO restaura automáticamente Secrets,
-Kong, Redis ni el resto de la infraestructura. Para recuperación completa usar
-el commit de configuración compatible y los secretos de esa versión.
 
-ANTES DE ENTREGAR AL EVALUADOR
-1. Ejecutar CI/CD en el repositorio real y revisar sus evidencias.
-2. Verificar dos workers y que las réplicas estén distribuidas entre ellos.
-3. Mostrar HPA operativo con métricas y un ensayo de carga.
-4. Probar cURL contra el dominio HTTPS real sin -k.
-5. Facilitar repositorio, HOST, pasos para generar JWT y evidencias.
-   No entregar un token vencido o ya consumido como única forma de probar.
-6. Explicar que el JWT se emite fuera de la API con el CLI y que su secreto
-   permanece en manos del emisor; acordar cómo recibirá tokens el evaluador.
+La reversión de la API no restaura secretos, Redis ni configuración de Kong.
+Se debe comprobar la compatibilidad y repetir la prueba pública.
 
-PARAR SOLO ESTE LABORATORIO
-docker compose -p jorge-devops-exercise stop
-Este comando preserva los datos del laboratorio. No usar comandos globales de
-limpieza Docker, porque pueden afectar otros proyectos de esta computadora.
+ORGANIZACIÓN
+src/DevOps.Api: servicio y autenticación.
+tools/TokenIssuer: emisor de JWT.
+tests/DevOps.Api.Tests: pruebas de contrato y seguridad.
+scripts: inicialización, despliegue, validación y operación.
+infra: configuración de Kubernetes local.
+evidence: resultados de las comprobaciones.
+.github/workflows: integración y despliegue automatizados.

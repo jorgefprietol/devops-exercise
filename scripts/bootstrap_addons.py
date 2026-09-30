@@ -1,4 +1,4 @@
-"""Install pinned networking and metrics components into the dedicated kind lab."""
+"""Instala las versiones fijadas de red y métricas en el cluster de laboratorio."""
 from pathlib import Path
 import datetime
 import ipaddress
@@ -21,8 +21,8 @@ calico = calico.replace('# - name: CALICO_IPV4POOL_CIDR\n            #   value: 
 objects = list(yaml.safe_load_all(calico))
 for item in objects:
     if item and item['kind'] == 'DaemonSet':
-        # Docker Desktop's nested kind nodes do not expose securityfs. The lab
-        # uses Calico's iptables dataplane, not optional BPF LSM integration.
+        # Los nodos de kind en Docker Desktop no exponen securityfs.
+        # En este entorno se utiliza el plano de datos iptables de Calico.
         spec = item['spec']['template']['spec']
         spec['volumes'] = [v for v in spec['volumes'] if v['name'] != 'sys-kernel-security']
         for container in item['spec']['template']['spec']['containers']:
@@ -50,4 +50,4 @@ if not (private / 'tls.crt').exists():
         .add_extension(x509.BasicConstraints(ca=True,path_length=0),critical=True).sign(key,hashes.SHA256()))
     (private/'tls.crt').write_bytes(cert.public_bytes(serialization.Encoding.PEM))
     (private/'tls.key').write_bytes(key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,serialization.NoEncryption()))
-print('Calico, Metrics Server and local-origin TLS ready. Kubelet insecure TLS is limited to this kind lab.')
+print('Calico, Metrics Server y TLS local preparados. La excepción TLS de kubelet solo corresponde a este laboratorio.')

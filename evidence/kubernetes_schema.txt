@@ -1,2 +1,0 @@
-PASS: 14 resources validated against Kubernetes v1.34.1 OpenAPI schema.
-This validates structure, not execution, RBAC, scheduling, storage or HPA behavior.

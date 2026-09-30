@@ -68,7 +68,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 public class SecurityTests
 {
     [Fact]
-    public async Task Success_returns_exact_contract()
+    public async Task La_respuesta_correcta_respeta_el_contrato()
     {
         await using var app = new ApiFactory(); using var client = app.CreateClient();
         using var response = await client.SendAsync(ApiFactory.Request());
@@ -88,7 +88,7 @@ public class SecurityTests
     [InlineData("old")]
     [InlineData("future-iat")]
     [InlineData("long-life")]
-    public async Task Invalid_tokens_are_rejected(string kind)
+    public async Task Se_rechazan_los_tokens_invalidos(string kind)
     {
         await using var app = new ApiFactory(); using var client = app.CreateClient();
         using var response = await client.SendAsync(ApiFactory.Request(ApiFactory.Token(kind)));
@@ -97,7 +97,7 @@ public class SecurityTests
     [Theory]
     [InlineData("malformed")]
     [InlineData("")]
-    public async Task Malformed_tokens_are_rejected(string token)
+    public async Task Se_rechazan_los_tokens_mal_formados(string token)
     {
         await using var app = new ApiFactory(); using var client = app.CreateClient();
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(ApiFactory.Request(token))).StatusCode);
@@ -107,7 +107,7 @@ public class SecurityTests
     [InlineData("jwt")]
     [InlineData("duplicate-key")]
     [InlineData("duplicate-jwt")]
-    public async Task Invalid_headers_are_rejected(string kind)
+    public async Task Se_rechazan_los_encabezados_invalidos(string kind)
     {
         await using var app = new ApiFactory(); using var client = app.CreateClient();
         using var request = ApiFactory.Request();
@@ -125,14 +125,14 @@ public class SecurityTests
     [InlineData("{\"message\":\"x\",\"to\":\"x\",\"from\":\"x\",\"timeToLifeSec\":86401}")]
     [InlineData("{\"message\":\"x\",\"to\":\" \",\"from\":\"x\",\"timeToLifeSec\":45}")]
     [InlineData("{\"message\":\"x\",\"to\":\"x\",\"from\":\" \",\"timeToLifeSec\":45}")]
-    public async Task Invalid_body_is_rejected_without_consuming_token(string body)
+    public async Task El_cuerpo_invalido_no_consume_el_token(string body)
     {
         await using var app = new ApiFactory(); using var client = app.CreateClient(); var token = ApiFactory.Token();
         Assert.Equal(HttpStatusCode.BadRequest, (await client.SendAsync(ApiFactory.Request(token, body))).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(ApiFactory.Request(token))).StatusCode);
     }
     [Fact]
-    public async Task Parallel_replay_has_only_one_winner()
+    public async Task La_repeticion_concurrente_tiene_un_solo_exito()
     {
         await using var app = new ApiFactory(); using var client = app.CreateClient(); var token = ApiFactory.Token();
         var responses = await Task.WhenAll(Enumerable.Range(0, 20).Select(_ => client.SendAsync(ApiFactory.Request(token))));
@@ -140,7 +140,7 @@ public class SecurityTests
         Assert.Equal(19, responses.Count(r => r.StatusCode == HttpStatusCode.Conflict));
     }
     [Fact]
-    public async Task Store_failure_fails_closed_and_readiness_fails()
+    public async Task La_falla_del_almacen_impide_aceptar_transacciones()
     {
         await using var app = new ApiFactory(); app.Store.Available = false; using var client = app.CreateClient();
         Assert.Equal(HttpStatusCode.ServiceUnavailable, (await client.SendAsync(ApiFactory.Request())).StatusCode);
@@ -148,7 +148,7 @@ public class SecurityTests
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health/live")).StatusCode);
     }
     [Fact]
-    public async Task Internal_health_and_unknown_path()
+    public async Task La_salud_interna_y_las_rutas_desconocidas()
     {
         await using var app = new ApiFactory(); using var client = app.CreateClient();
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health/ready")).StatusCode);
@@ -156,7 +156,7 @@ public class SecurityTests
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/devops")).StatusCode);
     }
     [Fact]
-    public async Task Unsupported_content_type_and_oversize_body()
+    public async Task Se_rechazan_el_tipo_y_el_tamano_no_admitidos()
     {
         await using var app = new ApiFactory(); using var client = app.CreateClient();
         using var wrong = ApiFactory.Request(); wrong.Content = new StringContent("not json");
@@ -164,7 +164,7 @@ public class SecurityTests
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, (await client.SendAsync(ApiFactory.Request(json: new string('x', 17000)))).StatusCode);
     }
     [Fact]
-    public async Task Head_returns_status_without_body()
+    public async Task Head_devuelve_estado_sin_cuerpo()
     {
         await using var app = new ApiFactory(); using var client = app.CreateClient();
         using var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, "/DevOps"));
@@ -172,7 +172,7 @@ public class SecurityTests
         Assert.Equal("", await response.Content.ReadAsStringAsync());
     }
     [Fact]
-    public void Missing_secrets_fail_startup_validation()
+    public void La_falta_de_secretos_impide_el_inicio()
     {
         Assert.Throws<InvalidOperationException>(() => SecuritySettings.Load(new ConfigurationBuilder().Build()));
         Assert.Null(new TokenValidator(new(ApiFactory.Key, ApiFactory.Secret, "devops-candidate", "devops-api")).Validate(new string('x', 9000)));
@@ -181,7 +181,7 @@ public class SecurityTests
     [InlineData(2001, 1, 1)]
     [InlineData(1, 201, 1)]
     [InlineData(1, 1, 201)]
-    public void Field_length_limits(int message, int to, int from)
+    public void Se_respetan_los_limites_de_longitud(int message, int to, int from)
     {
         Assert.False(new MessageRequest(new string('a', message), new string('b', to), new string('c', from), 45).IsValid());
     }

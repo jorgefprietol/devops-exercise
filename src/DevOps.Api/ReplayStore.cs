@@ -8,7 +8,7 @@ public interface IReplayStore
     Task<bool> IsReadyAsync();
 }
 
-public sealed class ReplayStoreUnavailableException(Exception inner) : Exception("Replay store unavailable.", inner);
+public sealed class ReplayStoreUnavailableException(Exception inner) : Exception("El almacén de control de repetición no está disponible.", inner);
 
 public sealed class RedisReplayStore : IReplayStore, IDisposable
 {
@@ -25,7 +25,7 @@ public sealed class RedisReplayStore : IReplayStore, IDisposable
         try
         {
             var redis = await connection.Value;
-            // Atomic across all replicas, with expiration when the JWT expires.
+            // Operación atómica compartida por las réplicas; caduca junto con el JWT.
             return await redis.GetDatabase().StringSetAsync("devops:jti:" + id, "used", ttl, When.NotExists);
         }
         catch (Exception ex) when (ex is RedisException or TimeoutException)

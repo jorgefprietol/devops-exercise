@@ -35,7 +35,7 @@
     ],
     [
       "Compilación y estilo",
-      "Build sin advertencias; formato estático verificado."
+      "Compilación sin advertencias; formato estático verificado."
     ],
     [
       "Imagen Docker",
@@ -47,19 +47,19 @@
     ],
     [
       "Infraestructura Kubernetes",
-      "14 recursos validados contra esquema v1.34.1; no ejecutados en un cluster."
+      "14 recursos definidos y desplegados en Kubernetes local v1.34.11."
     ],
     [
       "Pipeline GitHub",
-      "YAML y dependencias revisados; ejecución remota pendiente."
+      "Compilación, pruebas, imagen y despliegue ejecutados correctamente en GitHub Actions."
     ],
     [
       "Escalado HPA",
-      "Declarado 2 a 6 réplicas; prueba con carga y Metrics Server pendiente."
+      "Escalado de 2 a 6 réplicas disponibles comprobado con carga sintética de CPU."
     ],
     [
       "GitHub público y HOST externo",
-      "No publicados. Requieren configurar cuenta, cluster, DNS y TLS."
+      "Repositorio público y API HTTPS temporal publicados y comprobados."
     ]
   ]
 }

@@ -1,12 +1,12 @@
-"""Kong DB-less JSON. Credentials come from environment, never committed output."""
+"""Configuración declarativa de Kong. Las credenciales se leen del entorno."""
 import os
 
 
 def config(local=False):
     targets = ['api1:8080', 'api2:8080'] if local else ['devops-api:8080']
     auth = [
-        # Kong JWT expects a Bearer value even for custom headers. Normalize the
-        # exercise's raw X-JWT-KWY without changing the caller's exact contract.
+        # Kong requiere Bearer. Se adapta el encabezado X-JWT-KWY internamente
+        # para conservar el contrato solicitado al cliente.
         {'name': 'pre-function', 'config': {'access': [
             "kong.service.request.clear_header('Authorization'); "
             "local t = kong.request.get_header('X-JWT-KWY'); "

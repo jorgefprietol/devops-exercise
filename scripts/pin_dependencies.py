@@ -1,4 +1,4 @@
-"""Maintainer helper: replace floating requested versions with resolved lock versions."""
+"""Fija las dependencias a las versiones resueltas en el archivo de bloqueo."""
 import json
 from pathlib import Path
 import re

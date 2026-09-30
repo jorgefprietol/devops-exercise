@@ -12,7 +12,7 @@ public class ContractTests
     [InlineData("PATCH")]
     [InlineData("DELETE")]
     [InlineData("OPTIONS")]
-    public async Task Other_methods_return_literal_error(string method)
+    public async Task Otros_metodos_devuelven_error_literal(string method)
     {
         await using var app = new ApiFactory();
         using var client = app.CreateClient();
@@ -22,7 +22,7 @@ public class ContractTests
     }
 
     [Fact]
-    public async Task Post_without_credentials_is_unauthorized()
+    public async Task Post_sin_credenciales_no_esta_autorizado()
     {
         await using var app = new ApiFactory();
         using var client = app.CreateClient();

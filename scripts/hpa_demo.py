@@ -1,4 +1,4 @@
-"""Bounded synthetic CPU test, not a traffic throughput benchmark."""
+"""Prueba acotada de CPU para comprobar el HPA; no mide capacidad de tráfico."""
 from pathlib import Path
 import json
 import os
@@ -14,7 +14,7 @@ def get(kind):
 
 pod = get(['pods','-l','app=devops-api'])['items'][0]['metadata']['name']
 before = get(['hpa','devops-api'])['status'].get('currentReplicas', 0)
-# The timed loop is confined to one application container in this dedicated lab.
+# La carga temporal se limita a un contenedor de la API en el laboratorio.
 command = 'end=$(( $(date +%s) + 90 )); while [ $(date +%s) -lt "$end" ]; do :; done'
 load = subprocess.Popen(base + ['exec',pod,'--','sh','-c',command], env=env, stdout=subprocess.DEVNULL)
 records = []
@@ -27,8 +27,8 @@ for _ in range(14):
     print(json.dumps(record), flush=True)
     time.sleep(10)
 load.wait(timeout=10)
-assert any((x.get('desired') or 0) > before for x in records), 'HPA did not request more replicas'
-assert any((x.get('current') or 0) > before for x in records), 'New replicas were not observed'
-assert any(x['available'] > before for x in records), 'Additional replicas did not become available'
-(root/'evidence/hpa-live.json').write_text(json.dumps({'test':'90-second synthetic CPU load in one API pod; not an HTTP throughput benchmark','initial':before,'records':records},indent=2),encoding='utf-8')
-print('PASS: HPA increased replicas from its initial value. CPU load has ended.',flush=True)
+assert any((x.get('desired') or 0) > before for x in records), 'El HPA no solicitó réplicas adicionales'
+assert any((x.get('current') or 0) > before for x in records), 'No se observaron nuevas réplicas'
+assert any(x['available'] > before for x in records), 'Las réplicas adicionales no alcanzaron disponibilidad'
+(root/'evidence/hpa-live.json').write_text(json.dumps({'test':'Carga sintética de CPU de 90 segundos en un pod; no mide rendimiento HTTP','initial':before,'records':records},indent=2),encoding='utf-8')
+print('CORRECTO: el HPA aumentó las réplicas disponibles y la carga de CPU terminó.',flush=True)

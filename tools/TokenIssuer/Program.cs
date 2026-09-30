@@ -1,4 +1,3 @@
-﻿// See https://aka.ms/new-console-template for more information
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -7,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 var secret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "";
 if (Encoding.UTF8.GetByteCount(secret) < 32)
 {
-    Console.Error.WriteLine("Set JWT_SECRET with at least 32 UTF-8 bytes. Never commit it.");
+    Console.Error.WriteLine("Configura JWT_SECRET con al menos 32 bytes UTF-8. No lo publiques.");
     return 1;
 }
 var now = DateTime.UtcNow;

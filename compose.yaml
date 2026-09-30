@@ -3,8 +3,8 @@ services:
     build: .
     image: devops-api:local
     environment:
-      API_KEY: ${API_KEY:?Run scripts/init_local.py}
-      JWT_SECRET: ${JWT_SECRET:?Run scripts/init_local.py}
+      API_KEY: ${API_KEY:?Ejecuta scripts/init_local.py}
+      JWT_SECRET: ${JWT_SECRET:?Ejecuta scripts/init_local.py}
       REDIS_CONNECTION: redis:6379,password=${REDIS_PASSWORD},abortConnect=false
     depends_on:
       redis:
@@ -18,7 +18,7 @@ services:
   redis:
     image: redis:7.4-alpine
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:?Run scripts/init_local.py}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Ejecuta scripts/init_local.py}
     command: [sh, -c, 'exec redis-server --appendonly yes --appendfsync always --requirepass "$$REDIS_PASSWORD"']
     volumes: [redis-data:/data]
     healthcheck:

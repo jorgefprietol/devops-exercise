@@ -3,7 +3,13 @@ $ErrorActionPreference = 'Stop'
 $labRoot = Split-Path $PSScriptRoot -Parent
 Set-Location -LiteralPath $labRoot
 if (-not $PythonExe) {
-    $PythonExe = (Get-Command python -ErrorAction Stop).Source
+    if (Get-Command py -ErrorAction SilentlyContinue) {
+        $PythonExe = (& py -3 -c 'import sys; print(sys.executable)').Trim()
+    } else {
+        $PythonExe = (Get-Command python -ErrorAction Stop).Source
+    }
+    & $PythonExe -c 'import sys; assert sys.version_info >= (3, 10)'
+    if ($LASTEXITCODE -ne 0) { throw 'Se requiere Python 3.10 o posterior. Indica su ruta con -PythonExe.' }
 }
 $env:KUBECONFIG = Join-Path $labRoot '.local\kubeconfig'
 if (-not (Test-Path -LiteralPath $env:KUBECONFIG)) { throw 'Primero crea el cluster siguiendo PUBLICACION.txt.' }
@@ -20,7 +26,7 @@ function Get-LabProcess([string]$PidFile, [string]$ExpectedPath) {
 $tunnelExe = Join-Path $labRoot '.local\bin\cloudflared.exe'
 $tunnelProcess = Get-LabProcess '.local\tunnel.pid' $tunnelExe
 if (-not $tunnelProcess) {
-    # Each restart has a new public URL; keep only this process's log for parsing.
+    # Cada reinicio obtiene otra URL; se conserva un registro por proceso.
     if (Test-Path '.local\tunnel.log') { Move-Item -LiteralPath '.local\tunnel.log' -Destination ('.local\tunnel-' + (Get-Date -Format 'yyyyMMddHHmmss') + '.log') }
     $tunnelProcess = Start-Process -FilePath $tunnelExe -ArgumentList @('tunnel','--url','https://127.0.0.1:9443','--origin-ca-pool','.local/tls.crt','--protocol','http2','--no-autoupdate','--logfile','.local/tunnel.log') -WorkingDirectory $labRoot -WindowStyle Hidden -PassThru
     $tunnelProcess.Id | Set-Content '.local\tunnel.pid'

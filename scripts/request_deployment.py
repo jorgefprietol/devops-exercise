@@ -1,4 +1,4 @@
-"""GitHub-hosted job requests a deployment and waits for the local agent."""
+"""Solicita el despliegue desde GitHub y espera el resultado del agente local."""
 import json
 import os
 import time
@@ -17,24 +17,24 @@ def api(path, body=None):
 deployment = api('/deployments', {
     'ref': os.environ['DEPLOY_SHA'], 'environment': os.environ['DEPLOY_ENV'],
     'auto_merge': False, 'required_contexts': [],
-    'description': 'Deploy verified image to the local Kubernetes lab',
+    'description': 'Desplegar la imagen verificada en Kubernetes local',
     'payload': {'image': os.environ['IMAGE'], 'run_id': os.environ['GITHUB_RUN_ID']},
     'production_environment': os.environ['DEPLOY_ENV'] == 'production'})
 ident = deployment['id']
-print(f'Deployment {ident}: waiting for the local Kubernetes agent.', flush=True)
+print(f'Despliegue {ident}: esperando al agente local de Kubernetes.', flush=True)
 for _ in range(120):
     statuses = api(f'/deployments/{ident}/statuses')
     if statuses:
         state = statuses[0]['state']
         if state == 'success':
             url = statuses[0].get('environment_url', '')
-            print('Deployment and public HTTPS checks passed: ' + url, flush=True)
+            print('Despliegue y pruebas HTTPS públicas correctos: ' + url, flush=True)
             with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
-                summary.write(f'### Kubernetes deployment verified\n\n[Public API]({url}/DevOps) · deployment {ident}\n\nPOST with API Key and a fresh JWT is required.\n')
+                summary.write(f'### Despliegue Kubernetes verificado\n\n[API pública]({url}/DevOps) · despliegue {ident}\n\nSe requiere POST, API Key y un JWT nuevo.\n')
             break
         if state in ('failure', 'error', 'inactive'):
-            raise RuntimeError('Local deployment reported ' + state)
+            raise RuntimeError('El despliegue local comunicó el estado ' + state)
     time.sleep(10)
 else:
-    api(f'/deployments/{ident}/statuses', {'state': 'error', 'description': 'Local agent did not finish within 20 minutes.'})
-    raise TimeoutError('Start the local lab deployment agent and rerun the workflow.')
+    api(f'/deployments/{ident}/statuses', {'state': 'error', 'description': 'El agente local no terminó en 20 minutos.'})
+    raise TimeoutError('Inicia el agente local y vuelve a ejecutar el flujo.')

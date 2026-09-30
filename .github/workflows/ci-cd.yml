@@ -1,4 +1,4 @@
-name: DevOps build test and deploy
+name: Integración y despliegue DevOps
 on:
   pull_request:
     branches: [master, develop]
@@ -8,27 +8,33 @@ on:
   workflow_dispatch:
     inputs:
       environment:
+        description: Entorno de despliegue
         type: choice
         options: [development, staging, production]
         default: staging
       version:
-        description: 'Existing vX.Y.Z tag; blank uses the selected branch'
+        description: 'Etiqueta vX.Y.Z existente; vacío utiliza la rama seleccionada'
         type: string
         default: ''
+env:
+  DOTNET_CLI_UI_LANGUAGE: es
+  DOCKER_BUILD_SUMMARY: 'false'
 permissions:
   contents: read
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Compilación
+    runs-on: ubuntu-24.04
     outputs:
       sha: ${{ steps.meta.outputs.sha }}
       target: ${{ steps.meta.outputs.target }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Obtener código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.version || github.ref }}
           fetch-depth: 0
-      - name: Select version and environment
+      - name: Seleccionar versión y entorno
         id: meta
         shell: bash
         env:
@@ -48,88 +54,105 @@ jobs:
           fi
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "target=$target" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-dotnet@v4
+      - name: Preparar SDK de .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 8.0.x
           cache: true
           cache-dependency-path: '**/packages.lock.json'
-      - run: dotnet restore --locked-mode
-      - name: Build with static analyzers
+      - name: Restaurar dependencias bloqueadas
+        run: dotnet restore --locked-mode
+      - name: Compilar con análisis estático
         run: dotnet build -c Release --no-restore -warnaserror
-      - name: Static formatting analysis
+      - name: Verificar formato del código
         run: dotnet format --verify-no-changes --no-restore
   test:
+    name: Pruebas
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Obtener código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.build.outputs.sha }}
-      - uses: actions/setup-dotnet@v4
+      - name: Preparar SDK de .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 8.0.x
-      - run: dotnet restore --locked-mode
-      - run: dotnet test -c Release --no-restore --collect:'XPlat Code Coverage' --logger trx --results-directory evidence/green
-      - run: python3 scripts/coverage_gate.py 80
-      - name: Prepare isolated integration settings
+      - name: Restaurar dependencias bloqueadas
+        run: dotnet restore --locked-mode
+      - name: Ejecutar pruebas automatizadas
+        run: dotnet test -c Release --no-restore --collect:'XPlat Code Coverage' --logger trx --results-directory evidence/green
+      - name: Verificar el umbral de cobertura
+        run: python3 scripts/coverage_gate.py 80
+      - name: Preparar configuración de integración
         run: python3 scripts/init_local.py
-      - name: Start gateway Redis and two API containers
+      - name: Iniciar Kong, Redis y dos instancias de la API
         run: docker compose up -d --build --wait --wait-timeout 180
-      - name: Gateway integration and replay checks
+      - name: Comprobar integración y protección contra repeticiones
         shell: bash
         run: |
           set -a
           source .env
           set +a
           python3 scripts/smoke.py https://localhost:8443 --local
-      - name: Container logs on failure
+      - name: Consultar registros en caso de error
         if: failure()
         run: docker compose logs --tail=60
-      - name: Stop integration containers
+      - name: Detener contenedores de prueba
         if: always()
         run: docker compose down
-      - uses: actions/upload-artifact@v4
+      - name: Guardar resultados de pruebas
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: tests-and-coverage
+          name: pruebas-y-cobertura
           path: evidence/green
   package:
+    name: Imagen Docker
     needs: [build, test]
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     outputs:
       image: ${{ steps.image.outputs.ref }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Obtener código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.build.outputs.sha }}
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - name: Preparar constructor Docker
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Autenticar el registro de imágenes
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - id: name
+      - name: Preparar nombre de imagen
+        id: name
         env:
           REPO: ${{ github.repository }}
         run: echo "value=ghcr.io/${REPO,,}" >> "$GITHUB_OUTPUT"
-      - id: publish
-        uses: docker/build-push-action@v6
+      - name: Construir y publicar imagen
+        id: publish
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           push: true
           tags: ${{ steps.name.outputs.value }}:sha-${{ needs.build.outputs.sha }}
-      - id: image
+      - name: Registrar imagen inmutable
+        id: image
         env:
           NAME: ${{ steps.name.outputs.value }}
           DIGEST: ${{ steps.publish.outputs.digest }}
         run: echo "ref=$NAME@$DIGEST" >> "$GITHUB_OUTPUT"
   deploy:
+    name: Despliegue Kubernetes
     needs: [build, test, package]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     permissions:
       contents: read
@@ -138,10 +161,11 @@ jobs:
       group: deploy-${{ needs.build.outputs.target }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - name: Obtener código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.build.outputs.sha }}
-      - name: Request local Kubernetes deployment and wait for verification
+      - name: Solicitar despliegue y esperar la verificación pública
         env:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_ENV: ${{ needs.build.outputs.target }}

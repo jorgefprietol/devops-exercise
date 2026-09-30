@@ -11,3 +11,5 @@ evidence/red/
 evidence/green/
 artifacts/
 __pycache__/
+
+.venv/

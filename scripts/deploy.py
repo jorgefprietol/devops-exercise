@@ -1,6 +1,6 @@
-"""Portable Kubernetes infrastructure, versioned as Python-generated JSON.
-Requires an existing Kubernetes >=1.30 cluster, two workers, Metrics Server,
-default StorageClass and LoadBalancer implementation. No cloud account is created.
+"""Infraestructura Kubernetes versionada mediante manifiestos JSON.
+Requiere un cluster >=1.30, dos trabajadores, Metrics Server y almacenamiento.
+La entrada utiliza LoadBalancer o NodePort según el entorno.
 """
 import base64
 import hashlib
@@ -13,9 +13,9 @@ from kong_config import config
 
 def resources(env, image):
     if env not in ('development', 'staging', 'production'):
-        raise ValueError('Invalid environment')
+        raise ValueError('Entorno no permitido')
     if not re.fullmatch(r'[a-z0-9./_-]+@sha256:[a-f0-9]{64}', image):
-        raise ValueError('Deploy an immutable image digest')
+        raise ValueError('La imagen debe identificarse por un digest inmutable')
     ns = 'devops-' + env
     def obj(kind, name, spec=None, api='v1', **extra):
         value = {'apiVersion': api, 'kind': kind, 'metadata': {'name': name, 'namespace': ns}, **extra}
@@ -34,10 +34,10 @@ def resources(env, image):
                 'readOnlyRootFilesystem': True, 'capabilities': {'drop': ['ALL']}}
     signer = os.environ['JWT_SECRET']
     if len(signer.encode()) < 32:
-        raise ValueError('JWT_SECRET must contain at least 32 bytes')
+        raise ValueError('JWT_SECRET debe contener al menos 32 bytes')
     redis_password = os.environ['REDIS_PASSWORD']
     if not re.fullmatch(r'[a-fA-F0-9]{32,128}', redis_password):
-        raise ValueError('Use a random hex Redis password of 32 to 128 characters')
+        raise ValueError('Utiliza una contraseña hexadecimal aleatoria para Redis de 32 a 128 caracteres')
     kong = json.dumps(config())
     stamp = hashlib.sha256((kong + redis_password).encode()).hexdigest()
     tls = {'tls.crt': os.environ['TLS_CRT_B64'], 'tls.key': os.environ['TLS_KEY_B64']}

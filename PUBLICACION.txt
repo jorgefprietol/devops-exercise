@@ -1,98 +1,68 @@
-PUBLICACIÓN Y PIPELINE: QUÉ CORRE DÓNDE
+OPERACIÓN DEL DESPLIEGUE
 
-Repositorio: https://github.com/jorgefprietol/devops-exercise
-Pipeline gráfico: https://github.com/jorgefprietol/devops-exercise/actions
+GitHub Actions compila, prueba y publica la imagen. La etapa de despliegue
+registra una solicitud en GitHub Deployments. El agente local la consulta
+mediante HTTPS, comprueba origen, etapas previas y versión, aplica Kubernetes
+y devuelve el resultado. Excluye las solicitudes de cambios y conserva los
+secretos y el acceso al cluster dentro del equipo.
 
-GitHub Actions ejecuta Build, Test, Package y la coordinación de Deploy en
-máquinas Ubuntu temporales de GitHub. Estas máquinas terminan al acabar el job;
-no son servidores permanentes para la aplicación.
+RED
+Internet -> HTTPS público -> túnel saliente -> 127.0.0.1:9443
+-> NodePort 30443 -> Kong -> Servicio de la API -> Redis.
 
-Package publica la imagen en GHCR, identificada por su digest SHA256.
-Deploy crea una solicitud mediante GitHub Deployments y espera su resultado.
-scripts/local_deploy_agent.py, en el PC, consulta las solicitudes salientes por
-HTTPS, verifica repositorio, autor, tipo de evento, etapas previas y versión;
-aplica los manifiestos al cluster y ejecuta la prueba pública. Luego devuelve
-success/failure a GitHub. Un Deploy verde representa la prueba real completada.
+Cloudflare verifica el certificado del origen mediante .local/tls.crt.
+El cliente utiliza TLS público válido y debe presentar API Key y JWT.
 
-El agente no es un runner self-hosted genérico de GitHub: solo procesa este
-protocolo de despliegue. No ejecuta PR ni recibe conexiones hacia el PC. Conserva
-el kubeconfig, JWT_SECRET, Redis y certificados dentro de .local / .env.
-Solo código propio revisado debe llegar a master/develop y a tags de entrega.
+INICIAR O REANUDAR
+Abrir Docker Desktop y ejecutar desde la raíz del repositorio:
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-Lab.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test-PublicApi.ps1
 
-Kubernetes usa kind sobre Docker Desktop: un control-plane y dos workers.
-Cada worker es un contenedor-nodo Linux. Son dos nodos lógicos que comparten
-un PC; no representan disponibilidad entre máquinas físicas.
-Calico aplica NetworkPolicy. Metrics Server entrega CPU al HPA.
-La API y Kong tienen dos réplicas; Redis tiene una réplica persistente.
+Desde otra carpeta debe indicarse la ruta absoluta. Los scripts cambian a la
+raíz del proyecto después de que PowerShell haya encontrado el archivo.
+La opción Bypass se limita al proceso de ese comando.
+Start-Lab.ps1 detecta Python con py o PATH y admite -PythonExe con su ruta.
+Se requiere Python >=3.10. El agente usa la biblioteca estándar de Python.
 
-PUBLICACIÓN SIN CONTRATAR CLOUD
-Internet -> HTTPS Cloudflare temporal -> túnel saliente -> localhost:9443
--> NodePort 30443 de kind -> Service Kong -> API -> Redis.
-El túnel valida el certificado del origen usando .local/tls.crt. El usuario de
-la API recibe un certificado público válido y no utiliza -k.
-En LAB_MODE=kind se usa NodePort. En la variante cloud se conserva LoadBalancer.
-La URL cambia si se reinicia el túnel y no tiene garantía de disponibilidad.
-Cerrar Docker o apagar el PC interrumpe la API; cerrar el agente impide nuevos
-despliegues, pero no detiene una API ya desplegada.
+Cada reinicio del túnel obtiene una URL nueva, guardada en .local/public_urls.json.
+El agente atiende solicitudes durante ocho horas. Al terminar esa sesión,
+Start-Lab.ps1 permite iniciar otra. Sin agente no hay nuevos despliegues;
+una aplicación ya desplegada puede continuar mientras Docker y el túnel estén activos.
 
-REANUDAR EN ESTE EQUIPO
-1. Abrir Docker Desktop y esperar que esté disponible.
-2. Desde la carpeta solucion ejecutar:
-   powershell -ExecutionPolicy Bypass -File scripts/Start-Lab.ps1
-3. Ejecutar una prueba pública sin mostrar el JWT:
-   powershell -ExecutionPolicy Bypass -File scripts/Test-PublicApi.ps1
-4. Abrir Actions, elegir el workflow y revisar Build -> Test -> Package -> Deploy.
-   Para repetir: Run workflow. El agente permanece activo 8 horas por sesión.
-
-La política Bypass se limita al proceso del comando; no cambia la configuración
-global de Windows. También se pueden ejecutar los scripts desde una sesión que
-ya permita scripts locales sin especificar ese parámetro.
-
-PRIMERA INSTALACIÓN EN OTRA MÁQUINA
-Requiere Docker, .NET 8 SDK/runtime, Python, kubectl, gh autenticado, kind y
-cloudflared. bootstrap_addons.py requiere PyYAML y cryptography.
-Descargar ejecutables oficiales y verificar SHA256 de la versión seleccionada.
-python scripts/init_local.py
+INSTALACIÓN EN OTRO EQUIPO
+Requiere Docker, .NET 8, Python, kubectl, gh autenticado, kind y cloudflared.
+bootstrap_addons.py requiere PyYAML y cryptography; instalarlos en un entorno
+virtual dedicado. A continuación:
+py -3 scripts/init_local.py
 kind create cluster --config infra/kind.yaml --kubeconfig .local/kubeconfig
-python scripts/bootstrap_addons.py
-Situar cloudflared.exe en .local/bin. Iniciar scripts/Start-Lab.ps1.
-El cluster usa la red Docker kind; si los rangos automáticos están agotados,
-crear antes una subred libre explícita revisando que no se solape con otras.
+py -3 scripts/bootstrap_addons.py
 
-MÚLTIPLES ENTORNOS
-master -> production; develop -> development; tag v* -> staging.
-Run workflow permite seleccionar entorno y tag vX.Y.Z.
-Cada entorno tiene namespace y recursos propios. El laboratorio inicial publica
-production en 9443. Para publicar staging/development, abrir su túnel y registrar
-su URL en .local/public_urls.json; el agente falla claramente si no hay URL.
-NodePorts: production 30443, staging 30444, development 30445.
-Se pueden exponer otros entornos con kubectl port-forward svc/kong y su namespace,
-usando puertos locales distintos; mantener esos procesos y túneles abiertos.
+Situar cloudflared.exe en .local/bin y ejecutar Start-Lab.ps1.
+Comprobar que la subred de Docker no se solape con otras redes.
 
-EL ERROR DE LA CAPTURA
-http://127.0.0.1:8443 envía HTTP a un puerto HTTPS, por eso Kong devuelve 400.
-https://127.0.0.1:8443 corresponde al laboratorio Docker Compose anterior.
-https://localhost:9443 corresponde al nuevo laboratorio Kubernetes.
-Ambos requieren POST /DevOps + API Key + JWT. El navegador hace GET: no sirve
-como prueba de éxito del contrato. Usar Test-PublicApi.ps1, cURL o Postman.
+ENTORNOS
+El despliegue público configurado corresponde a production.
+development y staging usan otros namespaces y NodePorts: 30445 y 30444.
+Para habilitarlos hay que exponer sus servicios, crear sus túneles y registrar
+las URL en .local/public_urls.json. production es el nombre del entorno del
+ejercicio; el alojamiento continúa siendo un laboratorio local.
 
-HERRAMIENTA GRÁFICA GRATUITA
-GitHub Actions ya dibuja los jobs, sus dependencias, estados y tiempos. Al hacer
-clic en un job se ven sus pasos, logs y artefactos. Los runners estándar alojados
-por GitHub son gratuitos para este repositorio público. No se necesita Jenkins.
-Docker Desktop muestra contenedores, no las etapas de CI/CD.
+DIAGNÓSTICO
+400 con aviso de HTTPS: se utilizó http:// en un puerto que espera https://.
+405 al abrir /DevOps: el navegador envía GET, pero el contrato exige POST.
+401/403: comprobar credenciales y vigencia. 409: emitir un JWT nuevo.
+502/503: revisar túnel, Kong, API y Redis.
+Archivo .ps1 inexistente: usar una ruta absoluta o la raíz del repositorio.
 
-RESPUESTA PARA ENTREVISTA
-«Ejecuto CI en GitHub Actions. El pipeline compila, prueba y publica una imagen
-versionada. El despliegue se coordina desde GitHub y un agente local aplica esa
-imagen en Kubernetes. Uso un túnel HTTPS para demostrar el endpoint desde
-Internet. Puedo revisar cada etapa y sus registros en el gráfico de Actions.
-Este entorno es un laboratorio: para operación continua usaría un cluster
-remoto, un dominio estable y un mecanismo de despliegue administrado.»
+Kong utiliza dos procesos para ajustarse al límite de memoria. La distribución
+considera taints y revisiones para permitir escalado y mantener réplicas en
+ambos trabajadores. La prueba de HPA usa carga sintética de CPU y no mide
+la capacidad máxima de tráfico HTTP.
 
-Fuentes:
-https://docs.github.com/en/actions/how-tos/monitor-workflows/use-the-visualization-graph
-https://docs.github.com/en/actions/concepts/billing-and-usage
-https://docs.github.com/en/rest/deployments/deployments
-https://kind.sigs.k8s.io/docs/user/quick-start/
-https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/
+REGISTROS
+.local/agent.log y .local/agent-error.log: despliegue local.
+.local/tunnel.log: conexión pública. GitHub Actions: etapas y artefactos.
+
+La documentación, comentarios, etapas y mensajes propios están en español.
+La interfaz de GitHub y los registros de dependencias pueden estar en inglés.
+Los identificadores técnicos y los textos exigidos por el contrato se conservan.
