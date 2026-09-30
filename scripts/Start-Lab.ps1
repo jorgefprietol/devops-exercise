@@ -1,4 +1,5 @@
-param([string]$PythonExe, [int]$AgentHours = 8)
+param([string]$PythonExe, [int]$AgentHours = 8,
+    [ValidateSet('production','staging','development')][string]$Environment = 'production')
 $ErrorActionPreference = 'Stop'
 $labRoot = Split-Path $PSScriptRoot -Parent
 Set-Location -LiteralPath $labRoot
@@ -23,6 +24,16 @@ function Get-LabProcess([string]$PidFile, [string]$ExpectedPath) {
     }
     return $null
 }
+$port = @{production=9443;staging=9444;development=9445}[$Environment]
+$tunnelPid = if ($Environment -eq 'production') { '.local/tunnel.pid' } else { ".local/tunnel-$Environment.pid" }
+$tunnelLog = if ($Environment -eq 'production') { '.local/tunnel.log' } else { ".local/tunnel-$Environment.log" }
+if ($Environment -ne 'production') {
+    $forwardPid = ".local/forward-$Environment.pid"
+    if (-not (Get-LabProcess $forwardPid $PythonExe)) {
+        $forward = Start-Process -FilePath $PythonExe -ArgumentList @('-X','utf8','-u','scripts/local_port_forward.py',$Environment) -WorkingDirectory $labRoot -WindowStyle Hidden -RedirectStandardOutput ".local/forward-$Environment.log" -RedirectStandardError ".local/forward-$Environment-error.log" -PassThru
+        $forward.Id | Set-Content $forwardPid
+    }
+}
 $tunnelCommand = Get-Command cloudflared -ErrorAction SilentlyContinue
 $tunnelCandidates = @(
     $(if ($tunnelCommand) { $tunnelCommand.Source }),
@@ -35,28 +46,28 @@ if (-not $tunnelExe) { throw 'Instala cloudflared con winget install --id Cloudf
 # Se conserva el tunel activo para no cambiar una URL ya compartida.
 $tunnelProcess = $null
 foreach ($candidate in $tunnelCandidates) {
-    if ($candidate) { $tunnelProcess = Get-LabProcess '.local\tunnel.pid' $candidate }
+    if ($candidate) { $tunnelProcess = Get-LabProcess $tunnelPid $candidate }
     if ($tunnelProcess) { break }
 }
 if (-not $tunnelProcess) {
     # Cada reinicio obtiene otra URL; se conserva un registro por proceso.
-    if (Test-Path '.local\tunnel.log') { Move-Item -LiteralPath '.local\tunnel.log' -Destination ('.local\tunnel-' + (Get-Date -Format 'yyyyMMddHHmmss') + '.log') }
-    $tunnelProcess = Start-Process -FilePath $tunnelExe -ArgumentList @('tunnel','--url','https://127.0.0.1:9443','--origin-ca-pool','.local/tls.crt','--protocol','http2','--no-autoupdate','--logfile','.local/tunnel.log') -WorkingDirectory $labRoot -WindowStyle Hidden -PassThru
-    $tunnelProcess.Id | Set-Content '.local\tunnel.pid'
+    if (Test-Path $tunnelLog) { Move-Item -LiteralPath $tunnelLog -Destination ('.local\tunnel-' + (Get-Date -Format 'yyyyMMddHHmmss') + '.log') }
+    $tunnelProcess = Start-Process -FilePath $tunnelExe -ArgumentList @('tunnel','--url',"https://127.0.0.1:$port",'--origin-ca-pool','.local/tls.crt','--protocol','http2','--no-autoupdate','--logfile',$tunnelLog) -WorkingDirectory $labRoot -WindowStyle Hidden -PassThru
+    $tunnelProcess.Id | Set-Content $tunnelPid
 }
 $publicUrl = $null
 for ($attempt = 0; $attempt -lt 30; $attempt++) {
-    if (Test-Path '.local\tunnel.log') {
-        $foundUrls = [regex]::Matches((Get-Content '.local\tunnel.log' -Raw), 'https://[a-z0-9-]+\.trycloudflare\.com')
+    if (Test-Path $tunnelLog) {
+        $foundUrls = [regex]::Matches((Get-Content $tunnelLog -Raw), 'https://[a-z0-9-]+\.trycloudflare\.com')
         if ($foundUrls.Count -gt 0) { $publicUrl = $foundUrls[$foundUrls.Count - 1].Value; break }
     }
     Start-Sleep -Seconds 1
 }
 if (-not $publicUrl) { throw 'El tunel no entrego una URL. Revisa .local\tunnel.log.' }
-$urls = @{production = $publicUrl}
+$urls = @{}; $urls[$Environment] = $publicUrl
 if (Test-Path '.local\public_urls.json') {
     $previous = Get-Content '.local\public_urls.json' -Raw | ConvertFrom-Json
-    foreach ($property in $previous.PSObject.Properties) { if ($property.Name -ne 'production') { $urls[$property.Name] = $property.Value } }
+    foreach ($property in $previous.PSObject.Properties) { if ($property.Name -ne $Environment) { $urls[$property.Name] = $property.Value } }
 }
 [IO.File]::WriteAllText((Join-Path $labRoot '.local\public_urls.json'), ($urls | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
 $agentProcess = Get-LabProcess '.local\agent.pid' $PythonExe
@@ -64,7 +75,7 @@ if (-not $agentProcess) {
     $agentProcess = Start-Process -FilePath $PythonExe -ArgumentList @('-X','utf8','-u','scripts/local_deploy_agent.py','--hours',"$AgentHours") -WorkingDirectory $labRoot -WindowStyle Hidden -RedirectStandardOutput '.local/agent.log' -RedirectStandardError '.local/agent-error.log' -PassThru
     $agentProcess.Id | Set-Content '.local\agent.pid'
 }
-Write-Host "API publica: $publicUrl/DevOps"
+Write-Host "API publica ($Environment): $publicUrl/DevOps"
 Write-Host "Cloudflared disponible: $tunnelExe"
 Write-Host 'Pipeline: https://github.com/jorgefprietol/devops-exercise/actions'
 Write-Host 'El agente atiende despliegues durante la sesion configurada; el servicio depende del PC y Docker.'

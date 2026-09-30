@@ -33,6 +33,8 @@ X-JWT-KWY y los textos del contrato se conservan como aparecen en el enunciado.
 El cliente envía el JWT sin Bearer; Kong realiza la adaptación internamente.
 GET, PUT, PATCH, DELETE y OPTIONS: HTTP 405 y texto ERROR.
 HEAD: HTTP 405 sin cuerpo, conforme al protocolo HTTP.
+TRACE es rechazado por Kong (405 JSON) o Cloudflare (405 HTML) antes de la API;
+el cuerpo literal ERROR no está garantizado para ese método en la entrada pública.
 Credenciales inválidas: 401; Kong puede responder 403 para una API Key incorrecta.
 Cuerpo inválido: 400. Tipo no admitido: 415. Cuerpo excesivo: 413.
 JWT reutilizado: 409. Redis no disponible: 503. Ruta inexistente: 404.
@@ -124,7 +126,10 @@ Push a master: despliegue a production tras superar las comprobaciones.
 Push a develop: despliegue a development. Etiqueta v*: despliegue a staging.
 Ejecución manual: selección de entorno y, opcionalmente, etiqueta vX.Y.Z.
 Si la rama seleccionada es master, el destino siempre es production.
-Los entornos adicionales requieren su configuración y túnel correspondientes.
+Los tres entornos usan namespaces, Redis y secretos de firma independientes.
+Inicio conjunto: powershell -File scripts/Start-AllEnvironments.ps1
+Prueba por entorno: py -3 scripts/test_environment.py staging
+Preparación y versiones: PUBLICACION.txt. Evidencias: evidence/cierre-entornos.json.
 
 INFRAESTRUCTURA Y LÍMITES
 kind ejecuta un nodo de control y dos trabajadores en Docker. Son nodos lógicos

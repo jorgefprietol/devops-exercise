@@ -48,11 +48,43 @@ Ejecutar Start-Lab.ps1.
 Comprobar que la subred de Docker no se solape con otras redes.
 
 ENTORNOS
-El despliegue público configurado corresponde a production.
-development y staging usan otros namespaces y NodePorts: 30445 y 30444.
-Para habilitarlos hay que exponer sus servicios, crear sus túneles y registrar
-las URL en .local/public_urls.json. production es el nombre del entorno del
-ejercicio; el alojamiento continúa siendo un laboratorio local.
+production: namespace devops-production, HTTPS local 9443, NodePort 30443.
+staging: namespace devops-staging, HTTPS local 9444, NodePort 30444.
+development: namespace devops-development, HTTPS local 9445, NodePort 30445.
+Cada uno tiene Redis, volumen, JWT_SECRET y REDIS_PASSWORD propios.
+La API Key fija del ejercicio es compartida por especificación.
+
+En otro equipo, después de bootstrap_addons.py, seleccionar un digest publicado:
+$imagen = 'ghcr.io/jorgefprietol/devops-exercise@sha256:REEMPLAZAR_POR_DIGEST'
+py -3 scripts/prepare_environment.py production --image $imagen
+py -3 scripts/prepare_environment.py staging --image $imagen
+py -3 scripts/prepare_environment.py development --image $imagen
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-AllEnvironments.ps1
+
+La preparación es idempotente: conserva los secretos y los volúmenes existentes.
+Producción usa .env. Los demás usan .local/environments/<entorno>.env.
+Los puertos 9444/9445 se conectan al servicio Kong mediante port-forward TLS,
+limitado a loopback. El supervisor reconecta si el pod seleccionado termina.
+Los tres túneles se conservan mientras sus procesos sigan activos.
+
+Comprobar cada URL pública y credenciales:
+py -3 scripts/test_environment.py production
+py -3 scripts/test_environment.py staging
+py -3 scripts/test_environment.py development
+Agregar --local para comprobar el acceso HTTPS local en Kubernetes.
+
+VERSIONES Y EJECUCIÓN BAJO DEMANDA
+Push a master: production; push a develop: development; etiqueta v*: staging.
+La imagen se aplica por digest inmutable, sin depender de una etiqueta latest.
+GitHub -> Actions -> Integración y despliegue DevOps -> Run workflow.
+Seleccionar una etiqueta publicada, un entorno y version vX.Y.Z.
+Desde CLI, ejemplo de versión publicada hacia staging:
+gh workflow run ci-cd.yml --ref v1.0.0 -f environment=staging -f version=v1.0.0
+Si se selecciona master, el destino es production aunque se pida otro entorno:
+gh workflow run ci-cd.yml --ref master -f environment=staging -f version=v1.0.0
+Esta regla mantiene la exigencia del enunciado para master.
+No editar ni mover etiquetas existentes. Una modificación crea otra versión.
+Consultar evidencias y enlaces reales en evidence/cierre-entornos.json.
 
 DIAGNÓSTICO
 400 con aviso de HTTPS: se utilizó http:// en un puerto que espera https://.

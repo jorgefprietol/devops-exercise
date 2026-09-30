@@ -63,8 +63,11 @@ GitHub Actions -> imagen GHCR -> solicitud de despliegue -> agente local
 El agente solo acepta solicitudes del flujo y propietario configurados,
 comprueba las etapas previas y excluye pull requests. La publicación de master
 siempre corresponde al entorno production, también en ejecución manual.
-development, staging y production tienen namespaces separados. Los entornos
-adicionales necesitan sus servicios y túneles antes de recibir despliegues.
+development, staging y production tienen namespaces, Redis, PVC y secretos
+JWT independientes. La API Key fija se conserva por exigencia del ejercicio.
+Producción recibe tráfico por NodePort; staging y development usan un
+port-forward TLS de loopback supervisado que reconecta si cambia el pod de Kong.
+Cada entorno tiene su túnel HTTPS; compartir el PC no proporciona aislamiento físico.
 El usuario de gh en el PC debe tener acceso a Deployments del repositorio;
 este laboratorio no representa una plataforma compartida entre varios equipos.
 
@@ -94,3 +97,10 @@ https://ec.nttdata.com/services/cybersecurity/secure-business-enablement
 https://www.nttdata.com/global/en/insights/focus/2024/how-to-turn-devops-into-devsecops
 Cloudflare limita Quick Tunnels a desarrollo y pruebas, sin garantía de servicio:
 https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/
+
+MÉTODOS HTTP Y ALCANCE DEL CONTRATO
+GET, PUT, PATCH, DELETE y OPTIONS devuelven 405 con ERROR. HEAD devuelve
+405 sin cuerpo conforme a RFC 9110. TRACE se rechaza antes del servicio:
+Kong devuelve 405 JSON y Cloudflare 405 HTML. No se presenta este último
+caso como cumplimiento literal de ERROR. No se habilita reflexión TRACE.
+https://www.rfc-editor.org/rfc/rfc9110.html#name-head

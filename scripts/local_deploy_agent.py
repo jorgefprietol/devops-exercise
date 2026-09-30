@@ -14,6 +14,7 @@ import subprocess
 import sys
 import time
 import zipfile
+from environment_config import credentials
 
 ROOT = Path(__file__).resolve().parents[1]
 PRIVATE = ROOT / '.local'
@@ -66,10 +67,7 @@ def deploy(deployment, public_url):
             if not resolved.is_relative_to(output.resolve()): raise ValueError('Ruta no permitida dentro del archivo')
         package.extractall(output)
     env = os.environ.copy()
-    for line in (ROOT / '.env').read_text().splitlines():
-        if '=' in line:
-            key, value = line.split('=', 1)
-            env[key] = value
+    env.update(credentials(ROOT, deployment['environment']))
     env.update(KUBECONFIG=str(PRIVATE / 'kubeconfig'), LAB_MODE='kind',
                DEPLOY_ENV=deployment['environment'], IMAGE=deployment['payload']['image'])
     for key, file in [('TLS_CRT_B64', 'tls.crt'), ('TLS_KEY_B64', 'tls.key')]:
@@ -77,7 +75,14 @@ def deploy(deployment, public_url):
     subprocess.run([sys.executable, 'scripts/deploy.py'], cwd=output, env=env, check=True)
     for resource in ['statefulset/redis', 'deployment/devops-api', 'deployment/kong']:
         subprocess.run(['kubectl', '-n', 'devops-' + env['DEPLOY_ENV'], 'rollout', 'status', resource, '--timeout=300s'], env=env, check=True)
-    subprocess.run([sys.executable, 'scripts/smoke.py', public_url], cwd=output, env=env, check=True)
+    # El supervisor puede estar reconectando tras el rollout de Kong.
+    for attempt in range(6):
+        result = subprocess.run([sys.executable, 'scripts/smoke.py', public_url], cwd=output, env=env)
+        if result.returncode == 0:
+            break
+        if attempt == 5:
+            raise RuntimeError('La prueba pública no superó las comprobaciones')
+        time.sleep(5)
 
 def main():
     parser = argparse.ArgumentParser()
