@@ -1,0 +1,98 @@
+PUBLICACIÓN Y PIPELINE: QUÉ CORRE DÓNDE
+
+Repositorio: https://github.com/jorgefprietol/devops-exercise
+Pipeline gráfico: https://github.com/jorgefprietol/devops-exercise/actions
+
+GitHub Actions ejecuta Build, Test, Package y la coordinación de Deploy en
+máquinas Ubuntu temporales de GitHub. Estas máquinas terminan al acabar el job;
+no son servidores permanentes para la aplicación.
+
+Package publica la imagen en GHCR, identificada por su digest SHA256.
+Deploy crea una solicitud mediante GitHub Deployments y espera su resultado.
+scripts/local_deploy_agent.py, en el PC, consulta las solicitudes salientes por
+HTTPS, verifica repositorio, autor, tipo de evento, etapas previas y versión;
+aplica los manifiestos al cluster y ejecuta la prueba pública. Luego devuelve
+success/failure a GitHub. Un Deploy verde representa la prueba real completada.
+
+El agente no es un runner self-hosted genérico de GitHub: solo procesa este
+protocolo de despliegue. No ejecuta PR ni recibe conexiones hacia el PC. Conserva
+el kubeconfig, JWT_SECRET, Redis y certificados dentro de .local / .env.
+Solo código propio revisado debe llegar a master/develop y a tags de entrega.
+
+Kubernetes usa kind sobre Docker Desktop: un control-plane y dos workers.
+Cada worker es un contenedor-nodo Linux. Son dos nodos lógicos que comparten
+un PC; no representan disponibilidad entre máquinas físicas.
+Calico aplica NetworkPolicy. Metrics Server entrega CPU al HPA.
+La API y Kong tienen dos réplicas; Redis tiene una réplica persistente.
+
+PUBLICACIÓN SIN CONTRATAR CLOUD
+Internet -> HTTPS Cloudflare temporal -> túnel saliente -> localhost:9443
+-> NodePort 30443 de kind -> Service Kong -> API -> Redis.
+El túnel valida el certificado del origen usando .local/tls.crt. El usuario de
+la API recibe un certificado público válido y no utiliza -k.
+En LAB_MODE=kind se usa NodePort. En la variante cloud se conserva LoadBalancer.
+La URL cambia si se reinicia el túnel y no tiene garantía de disponibilidad.
+Cerrar Docker o apagar el PC interrumpe la API; cerrar el agente impide nuevos
+despliegues, pero no detiene una API ya desplegada.
+
+REANUDAR EN ESTE EQUIPO
+1. Abrir Docker Desktop y esperar que esté disponible.
+2. Desde la carpeta solucion ejecutar:
+   powershell -ExecutionPolicy Bypass -File scripts/Start-Lab.ps1
+3. Ejecutar una prueba pública sin mostrar el JWT:
+   powershell -ExecutionPolicy Bypass -File scripts/Test-PublicApi.ps1
+4. Abrir Actions, elegir el workflow y revisar Build -> Test -> Package -> Deploy.
+   Para repetir: Run workflow. El agente permanece activo 8 horas por sesión.
+
+La política Bypass se limita al proceso del comando; no cambia la configuración
+global de Windows. También se pueden ejecutar los scripts desde una sesión que
+ya permita scripts locales sin especificar ese parámetro.
+
+PRIMERA INSTALACIÓN EN OTRA MÁQUINA
+Requiere Docker, .NET 8 SDK/runtime, Python, kubectl, gh autenticado, kind y
+cloudflared. bootstrap_addons.py requiere PyYAML y cryptography.
+Descargar ejecutables oficiales y verificar SHA256 de la versión seleccionada.
+python scripts/init_local.py
+kind create cluster --config infra/kind.yaml --kubeconfig .local/kubeconfig
+python scripts/bootstrap_addons.py
+Situar cloudflared.exe en .local/bin. Iniciar scripts/Start-Lab.ps1.
+El cluster usa la red Docker kind; si los rangos automáticos están agotados,
+crear antes una subred libre explícita revisando que no se solape con otras.
+
+MÚLTIPLES ENTORNOS
+master -> production; develop -> development; tag v* -> staging.
+Run workflow permite seleccionar entorno y tag vX.Y.Z.
+Cada entorno tiene namespace y recursos propios. El laboratorio inicial publica
+production en 9443. Para publicar staging/development, abrir su túnel y registrar
+su URL en .local/public_urls.json; el agente falla claramente si no hay URL.
+NodePorts: production 30443, staging 30444, development 30445.
+Se pueden exponer otros entornos con kubectl port-forward svc/kong y su namespace,
+usando puertos locales distintos; mantener esos procesos y túneles abiertos.
+
+EL ERROR DE LA CAPTURA
+http://127.0.0.1:8443 envía HTTP a un puerto HTTPS, por eso Kong devuelve 400.
+https://127.0.0.1:8443 corresponde al laboratorio Docker Compose anterior.
+https://localhost:9443 corresponde al nuevo laboratorio Kubernetes.
+Ambos requieren POST /DevOps + API Key + JWT. El navegador hace GET: no sirve
+como prueba de éxito del contrato. Usar Test-PublicApi.ps1, cURL o Postman.
+
+HERRAMIENTA GRÁFICA GRATUITA
+GitHub Actions ya dibuja los jobs, sus dependencias, estados y tiempos. Al hacer
+clic en un job se ven sus pasos, logs y artefactos. Los runners estándar alojados
+por GitHub son gratuitos para este repositorio público. No se necesita Jenkins.
+Docker Desktop muestra contenedores, no las etapas de CI/CD.
+
+RESPUESTA PARA ENTREVISTA
+«Ejecuto CI en GitHub Actions. El pipeline compila, prueba y publica una imagen
+versionada. El despliegue se coordina desde GitHub y un agente local aplica esa
+imagen en Kubernetes. Uso un túnel HTTPS para demostrar el endpoint desde
+Internet. Puedo revisar cada etapa y sus registros en el gráfico de Actions.
+Este entorno es un laboratorio: para operación continua usaría un cluster
+remoto, un dominio estable y un mecanismo de despliegue administrado.»
+
+Fuentes:
+https://docs.github.com/en/actions/how-tos/monitor-workflows/use-the-visualization-graph
+https://docs.github.com/en/actions/concepts/billing-and-usage
+https://docs.github.com/en/rest/deployments/deployments
+https://kind.sigs.k8s.io/docs/user/quick-start/
+https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/

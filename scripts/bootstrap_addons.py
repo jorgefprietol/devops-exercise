@@ -21,8 +21,13 @@ calico = calico.replace('# - name: CALICO_IPV4POOL_CIDR\n            #   value: 
 objects = list(yaml.safe_load_all(calico))
 for item in objects:
     if item and item['kind'] == 'DaemonSet':
+        # Docker Desktop's nested kind nodes do not expose securityfs. The lab
+        # uses Calico's iptables dataplane, not optional BPF LSM integration.
+        spec = item['spec']['template']['spec']
+        spec['volumes'] = [v for v in spec['volumes'] if v['name'] != 'sys-kernel-security']
         for container in item['spec']['template']['spec']['containers']:
             if container['name'] == 'calico-node':
+                container['volumeMounts'] = [v for v in container['volumeMounts'] if v['name'] != 'sys-kernel-security']
                 entries = container['env']
                 entries[:] = [e for e in entries if e['name'] not in ('CALICO_IPV4POOL_CIDR', 'CALICO_IPV4POOL_IPIP', 'CALICO_IPV4POOL_VXLAN')]
                 entries += [{'name':'CALICO_IPV4POOL_CIDR','value':'10.244.0.0/16'}, {'name':'CALICO_IPV4POOL_IPIP','value':'Never'}, {'name':'CALICO_IPV4POOL_VXLAN','value':'Always'}]

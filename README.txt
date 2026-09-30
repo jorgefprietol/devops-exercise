@@ -89,7 +89,7 @@ KUBERNETES Y ENTREGA REAL
 El pipeline despliega en un cluster previamente preparado. No crea cuentas cloud.
 Se requieren Kubernetes >=1.30, dos workers, Metrics Server, StorageClass por
 defecto, CNI que aplique NetworkPolicy e implementación de Service LoadBalancer.
-En kind, un LoadBalancer requiere un complemento; kind solo no publica una IP.
+En kind se activa LAB_MODE=kind: NodePort y túnel HTTPS. La variante cloud usa LoadBalancer.
 En AWS/EKS y Azure/AKS el controlador cloud debe estar instalado/configurado.
 La API usa 2 réplicas, HPA 2..6 a 65% CPU y distribución entre dos nodos.
 HPA crea pods; el autoscaler del proveedor agrega nodos, y se configura aparte.
@@ -99,23 +99,15 @@ Redis usa una réplica con PVC y AOF appendfsync always: es una limitación de
 disponibilidad explícita. Una pérdida de datos puede permitir repetir JWT aún
 vigentes; para producción, diseñar Redis HA y la recuperación según ese riesgo.
 
-CONFIGURACIÓN EN GITHUB
-Crear repositorio público, subir el contenido de esta carpeta sin .env ni .local.
-Rama por defecto: master. Crear environments development, staging y production.
-Registrar por environment estos secrets:
-  API_KEY, JWT_SECRET, REDIS_PASSWORD (hex aleatorio), KUBECONFIG_B64,
-  TLS_CRT_B64, TLS_KEY_B64
-Variable por environment: PUBLIC_URL (por ejemplo https://devops.ejemplo.com).
-El kubeconfig debe permitir aplicar esta infraestructura en su namespace; la
-creación inicial de namespaces requiere permiso cluster-scope. Usar cuentas de
-despliegue restringidas; en una adaptación cloud usar OIDC en vez de kubeconfig
-persistente. No cargar credenciales administrativas del usuario por comodidad.
-El contenedor se publica en GHCR. Hacer público el paquete para que los nodos
-puedan descargarlo, o añadir imagePullSecrets y credenciales de solo lectura.
-DNS debe apuntar al LoadBalancer y el certificado debe cubrir ese DNS.
-Proteger master, exigir build/test y configurar reglas de environments. Para
-cumplir el despliegue automático del ejercicio no agregar aprobación manual
-obligatoria a production. En un banco real esto se ajustaría a su gobierno.
+CONFIGURACIÓN ACTUAL EN GITHUB
+Repositorio público: https://github.com/jorgefprietol/devops-exercise
+Pipeline gráfico: https://github.com/jorgefprietol/devops-exercise/actions
+La publicación real usa CI remoto y un agente local que consume solicitudes de
+GitHub Deployments. Las credenciales Kubernetes y los secretos permanecen en el
+PC. Ver PUBLICACION.txt para la arquitectura, inicio y límites del laboratorio.
+El pipeline no contiene actualmente un kubeconfig cloud ni secrets de Azure/AWS.
+El job Deploy espera el resultado del agente y la prueba HTTPS pública.
+La imagen GHCR es pública y se despliega por digest SHA256.
 
 EVENTOS DEL PIPELINE
 PR a master/develop -> Build y Test, sin publicar ni desplegar.
@@ -130,8 +122,9 @@ para rollback. Los tags seleccionan código versionado; esta implementación lo
 reconstruye. Para promover exactamente el mismo binario entre entornos, guardar
 y promover el digest del release en vez de reconstruirlo.
 
-DESPLIEGUE BAJO DEMANDA DESDE LINUX
-Exportar de forma segura los secrets indicados y además:
+VARIANTE CLOUD: DESPLIEGUE BAJO DEMANDA DESDE LINUX
+Exportar API_KEY, JWT_SECRET, REDIS_PASSWORD, TLS_CRT_B64, TLS_KEY_B64, un
+kubeconfig autorizado y además:
   DEPLOY_ENV=staging
   IMAGE=ghcr.io/usuario/repositorio@sha256:<digest real de 64 caracteres>
   PUBLIC_URL=https://dominio-con-certificado-valido
