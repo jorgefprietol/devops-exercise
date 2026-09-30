@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--subnet', default=None, help='Subred libre de Docker si existe un conflicto')
     parser.add_argument('--stop', action='store_true', help='Detener los contenedores conservando los datos')
     parser.add_argument('--test-only', action='store_true', help='Comprobar el entorno que ya está iniciado')
+    parser.add_argument('--public', action='store_true', help='Crear y probar una URL HTTPS pública temporal')
     args = parser.parse_args()
     if not 1024 <= args.port <= 65535 or not re.fullmatch('[a-z0-9][a-z0-9_-]{0,50}', args.project):
         parser.error('Puerto o nombre de proyecto no válido')
@@ -32,6 +33,8 @@ def main():
             parser.error('Utiliza una subred IPv4 privada libre')
         env['LAB_SUBNET'] = str(network)
     compose = ['docker', 'compose', '-p', args.project]
+    if args.public or args.stop:
+        compose += ['--profile', 'public']
 
     def run(command):
         subprocess.run(command, cwd=ROOT, env=env, check=True)
@@ -61,6 +64,12 @@ def main():
         print(response.read().decode())
     run(compose + ['ps'])
     print(f'API local comprobada: {url}/DevOps. El navegador utiliza GET; para probar POST ejecuta este script.')
+    if args.public:
+        from public_tunnel import compose_url
+        public_url = compose_url(args.project)
+        print(f'API pública comprobada: {public_url}/DevOps')
+        print('Sesión gratuita de hasta 60 minutos. Repite --public para renovar la sesión y su URL.')
+    run([sys.executable, 'scripts/export_postman_env.py', '--compose-port', str(args.port)])
 
 
 if __name__ == '__main__':

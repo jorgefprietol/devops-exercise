@@ -51,7 +51,7 @@ def main():
     status, body = send(jwt=jwt)
     assert status == 200 and json.loads(body) == {'message': 'Hello Juan Perez your message will be sent'}, (status, body)
     assert send(jwt=jwt)[0] == 409, 'Las réplicas deben rechazar la reutilización del JWT'
-    for method in ('GET', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'):
+    for method in ('GET', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'TRACE'):
         assert send(method) == (405, 'ERROR'), method
     assert send('HEAD') == (405, '')
     assert send(api_key='wrong')[0] in (401, 403)
@@ -60,7 +60,7 @@ def main():
     with ThreadPoolExecutor(max_workers=10) as pool:
         statuses = list(pool.map(lambda _: send(jwt=jwt)[0], range(10)))
     assert statuses.count(200) == 1 and statuses.count(409) == 9, statuses
-    print('CORRECTO: contrato, métodos, autenticación y rechazo de JWT repetidos, incluida concurrencia.')
+    print('CORRECTO: contrato, métodos (incluido TRACE con ERROR), HEAD sin cuerpo, autenticación y rechazo de JWT repetidos, incluida concurrencia.')
 
 
 if __name__ == '__main__':

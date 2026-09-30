@@ -7,71 +7,69 @@ y devuelve el resultado. Excluye las solicitudes de cambios y conserva los
 secretos y el acceso al cluster dentro del equipo.
 
 RED
-Internet -> HTTPS público -> túnel saliente -> 127.0.0.1:9443
--> NodePort 30443 -> Kong -> Servicio de la API -> Redis.
+Internet -> HTTPS público Pinggy -> túnel cifrado SSH -> Kong (HTTP interno)
+-> Servicio de la API -> Redis. No se publica el puerto HTTP interno al host.
+El acceso HTTPS local a Kubernetes sigue disponible en 127.0.0.1:9443.
+El cliente debe presentar API Key y JWT. TRACE devuelve 405 y ERROR también
+por la URL pública; HEAD responde sin cuerpo conforme al protocolo HTTP.
 
-Cloudflare verifica el certificado del origen mediante .local/tls.crt.
-El cliente utiliza TLS público válido y debe presentar API Key y JWT.
+INSTALACIÓN COMPLETA EN OTRO EQUIPO
+Requisitos previos: Docker Desktop iniciado con contenedores Linux, Python
+3.10 o posterior, Internet y recursos disponibles (probado con 16 GB en Docker).
+Desde la carpeta descargada del repositorio:
+py -3 scripts/lab.py --public
+O para preparar production, staging y development:
+py -3 scripts/lab.py --public --all-environments
 
-INICIAR O REANUDAR
-La demostración rápida para evaluadores usa scripts/demo.py (ver README.txt).
-Esta sección opera el laboratorio Kubernetes del propietario del repositorio.
+El script instala herramientas privadas con comprobación SHA-256, prepara
+kind con dos trabajadores, Calico, Metrics Server, TLS local y manifiestos.
+Las dependencias Python quedan en un entorno virtual privado. Usa una imagen
+pública verificada por digest desde infra/release-image.txt; --image permite
+otra versión. No requiere SDK .NET ni acceso a la cuenta de GitHub de Jorge.
+La configuración y los volúmenes existentes se conservan.
+
+Para una demostración más ligera que construye la API localmente:
+py -3 scripts/demo.py --public
+Compose ofrece dos instancias y balanceo; el HPA y los dos nodos trabajadores
+se demuestran con lab.py. Sin --public, ambos scripts trabajan en local.
+En Linux y macOS sustituye py -3 por python3.
+
+REANUDAR EL PIPELINE DEL PROPIETARIO
 Abrir Docker Desktop y ejecutar desde la raíz del repositorio:
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-Lab.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test-PublicApi.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-Lab.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-PublicApi.ps1
+Start-Lab.ps1 detecta Python, actualiza/verifica la URL y mantiene el agente.
+El agente requiere gh autenticado con permisos sobre el repositorio. Una copia
+descargada puede ejecutar la aplicación sin operar el pipeline de otra cuenta.
+No se incluye la identidad de despliegue del propietario en ningún archivo público.
 
-Desde otra carpeta debe indicarse la ruta absoluta. Los scripts cambian a la
-raíz del proyecto después de que PowerShell haya encontrado el archivo.
-La opción Bypass se limita al proceso de ese comando.
-Start-Lab.ps1 detecta Python con py o PATH y admite -PythonExe con su ruta.
-Se requiere Python >=3.10. El agente usa la biblioteca estándar de Python.
-
-Cada reinicio del túnel obtiene una URL nueva, guardada en .local/public_urls.json.
-El agente atiende solicitudes durante ocho horas. Al terminar esa sesión,
-Start-Lab.ps1 permite iniciar otra. Sin agente no hay nuevos despliegues;
-una aplicación ya desplegada puede continuar mientras Docker y el túnel estén activos.
-
-INSTALACIÓN EN OTRO EQUIPO
-Requiere Docker, .NET 8, Python, kubectl, gh autenticado, kind y cloudflared.
-bootstrap_addons.py requiere PyYAML y cryptography; instalarlos en un entorno
-virtual dedicado. A continuación:
-py -3 scripts/init_local.py
-kind create cluster --config infra/kind.yaml --kubeconfig .local/kubeconfig --image kindest/node:v1.34.11@sha256:44e222ee2132dab25ff87301682f89eb82c7880ea3a1bf543bfe9708fd08d67d
-py -3 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install PyYAML cryptography
-.\.venv\Scripts\python.exe scripts/bootstrap_addons.py
-
-En Windows instalar: winget install --id Cloudflare.cloudflared -e --source winget
-Start-Lab.ps1 lo detecta en PATH o Program Files y admite .local/bin como respaldo.
-Si ya existe un túnel del laboratorio, lo conserva para mantener su URL.
-Ejecutar Start-Lab.ps1.
-Comprobar que la subred de Docker no se solape con otras redes.
+DURACIÓN Y RENOVACIÓN DE LA PUBLICACIÓN
+Cada URL Pinggy gratuita dura hasta 60 minutos por sesión; no es alojamiento
+continuo ni tiene garantía de disponibilidad. Para renovar producción:
+py -3 scripts/public_tunnel.py production --renew
+El comando comprueba la API, actualiza .local/public_urls.json y Postman.
+El pod puede reiniciarse y obtener otra URL; repite Start-Lab.ps1 o
+public_tunnel.py para consultar y guardar la actual. El agente también la
+actualiza antes de cada despliegue. Comparte siempre la URL nueva al evaluador.
+No sustituyas esta entrada por Cloudflare si necesitas probar TRACE literal.
+https://pinggy.io/docs/
 
 ENTORNOS
 production: namespace devops-production, HTTPS local 9443, NodePort 30443.
-staging: namespace devops-staging, HTTPS local 9444, NodePort 30444.
-development: namespace devops-development, HTTPS local 9445, NodePort 30445.
-Cada uno tiene Redis, volumen, JWT_SECRET y REDIS_PASSWORD propios.
-La API Key fija del ejercicio es compartida por especificación.
+staging: namespace devops-staging, NodePort 30444 y URL pública propia.
+development: namespace devops-development, NodePort 30445 y URL pública propia.
+Cada namespace tiene Redis, volumen y secretos de firma propios; la API Key
+fija se comparte porque así lo exige el ejercicio. Producción usa .env y los
+otros entornos usan .local/environments/<entorno>.env.
+Start-AllEnvironments.ps1 reanuda los tres entornos ya preparados, con acceso
+local a staging/development mediante port-forward TLS en 9444/9445.
+lab.py --all-environments no inicia esos supervisores; usa sus URLs públicas
+o ejecuta Start-AllEnvironments.ps1 en el equipo propietario.
 
-En otro equipo, después de bootstrap_addons.py, seleccionar un digest publicado:
-$imagen = 'ghcr.io/jorgefprietol/devops-exercise@sha256:REEMPLAZAR_POR_DIGEST'
-py -3 scripts/prepare_environment.py production --image $imagen
-py -3 scripts/prepare_environment.py staging --image $imagen
-py -3 scripts/prepare_environment.py development --image $imagen
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-AllEnvironments.ps1
-
-La preparación es idempotente: conserva los secretos y los volúmenes existentes.
-Producción usa .env. Los demás usan .local/environments/<entorno>.env.
-Los puertos 9444/9445 se conectan al servicio Kong mediante port-forward TLS,
-limitado a loopback. El supervisor reconecta si el pod seleccionado termina.
-Los tres túneles se conservan mientras sus procesos sigan activos.
-
-Comprobar cada URL pública y credenciales:
+Verificar un entorno publicado:
 py -3 scripts/test_environment.py production
-py -3 scripts/test_environment.py staging
-py -3 scripts/test_environment.py development
-Agregar --local para comprobar el acceso HTTPS local en Kubernetes.
+Agregar --local comprueba el acceso HTTPS local; staging/development requieren
+los port-forward anteriores activos. Postman: ver postman/README.md.
 
 VERSIONES Y EJECUCIÓN BAJO DEMANDA
 Push a master: production; push a develop: development; etiqueta v*: staging.
@@ -100,7 +98,7 @@ la capacidad máxima de tráfico HTTP.
 
 REGISTROS
 .local/agent.log y .local/agent-error.log: despliegue local.
-.local/tunnel.log: conexión pública. GitHub Actions: etapas y artefactos.
+kubectl -n devops-production logs deployment/public-tunnel: conexión pública. GitHub Actions: etapas y artefactos.
 
 La documentación, comentarios, etapas y mensajes propios están en español.
 La interfaz de GitHub y los registros de dependencias pueden estar en inglés.

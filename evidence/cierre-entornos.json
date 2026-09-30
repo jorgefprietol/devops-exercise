@@ -1,23 +1,23 @@
 {
-  "fecha_utc": "2026-09-30T19:55:31.821616+00:00",
+  "fecha_utc": "2026-09-30T21:00:49.804219+00:00",
   "entornos": [
     {
       "entorno": "production",
-      "url": "https://anthony-highlights-ward-technique.trycloudflare.com",
+      "url": "https://jpphr-181-175-166-110.run.pinggy-free.link",
       "pruebas_publicas": "correctas",
       "pruebas_locales": "correctas",
       "namespace": "devops-production"
     },
     {
       "entorno": "staging",
-      "url": "https://criticism-foods-philips-replica.trycloudflare.com",
+      "url": "https://gfleg-181-175-166-110.free.pinggy.net",
       "pruebas_publicas": "correctas",
       "pruebas_locales": "correctas",
       "namespace": "devops-staging"
     },
     {
       "entorno": "development",
-      "url": "https://interact-julian-treasures-tribes.trycloudflare.com",
+      "url": "https://ehfzo-181-175-166-110.free.pinggy.net",
       "pruebas_publicas": "correctas",
       "pruebas_locales": "correctas",
       "namespace": "devops-development"
@@ -67,7 +67,7 @@
       "canal": "local",
       "metodo": "TRACE",
       "estado": 405,
-      "tipo_cuerpo": "JSON"
+      "tipo_cuerpo": "ERROR"
     },
     {
       "canal": "publico",
@@ -79,7 +79,7 @@
       "canal": "publico",
       "metodo": "TRACE",
       "estado": 405,
-      "tipo_cuerpo": "HTML"
+      "tipo_cuerpo": "ERROR"
     }
   ]
 }

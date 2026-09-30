@@ -53,10 +53,11 @@ def main():
             except urllib.error.HTTPError as error:
                 status, body = error.code, error.read().decode()
             assert status == 405
+            assert body == ('' if method == 'HEAD' else 'ERROR'), (channel, method, body)
             report['metodos_especiales'].append({'canal': channel, 'metodo': method, 'estado': status,
                 'tipo_cuerpo': 'vacio' if not body else 'ERROR' if body == 'ERROR' else 'HTML' if '<html>' in body else 'JSON'})
     (ROOT / 'evidence/cierre-entornos.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
-    print('Tres entornos probados; seis cruces de JWT rechazados; excepciones HTTP registradas.')
+    print('Tres entornos probados; seis cruces de JWT rechazados; TRACE devuelve ERROR y HEAD no contiene cuerpo.')
 
 
 if __name__ == '__main__':

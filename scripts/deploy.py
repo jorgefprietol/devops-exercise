@@ -87,7 +87,7 @@ def resources(env, image):
                   'securityContext': {'runAsUser': 1001, 'runAsNonRoot': True, 'allowPrivilegeEscalation': False,
                       'capabilities': {'drop': ['ALL']}, 'seccompProfile': {'type': 'RuntimeDefault'}},
                   'env': [envvar(k, v) for k, v in {
-                      'KONG_DATABASE':'off', 'KONG_ADMIN_LISTEN':'off', 'KONG_PROXY_LISTEN':'0.0.0.0:8443 ssl',
+                      'KONG_DATABASE':'off', 'KONG_ADMIN_LISTEN':'off', 'KONG_PROXY_LISTEN':'0.0.0.0:8443 ssl, 0.0.0.0:8000',
                       'KONG_STATUS_LISTEN':'0.0.0.0:8100', 'KONG_DECLARATIVE_CONFIG':'/kong/kong.json',
                       'KONG_NGINX_WORKER_PROCESSES':'2',
                       'KONG_SSL_CERT':'/tls/tls.crt', 'KONG_SSL_CERT_KEY':'/tls/tls.key'}.items()],
@@ -96,6 +96,8 @@ def resources(env, image):
                 'volumes': [{'name':'config','secret':{'secretName':'kong-config'}}, {'name':'tls','secret':{'secretName':'gateway-tls'}}]}}}, api='apps/v1'),
         obj('Service', 'kong', {'type': 'LoadBalancer', 'selector': {'app': 'kong'},
             'ports': [{'name': 'https', 'port': 443, 'targetPort': 8443}]}),
+        obj('Service', 'kong-tunnel', {'type': 'ClusterIP', 'selector': {'app': 'kong'},
+            'ports': [{'name': 'http-interno', 'port': 80, 'targetPort': 8000}]}),
         obj('NetworkPolicy', 'api-only-from-kong', {'podSelector': {'matchLabels': {'app':'devops-api'}},
             'policyTypes': ['Ingress'], 'ingress': [{'from': [{'podSelector': {'matchLabels': {'app':'kong'}}}],
                 'ports': [{'protocol':'TCP','port':8080}]}]}, api='networking.k8s.io/v1'),

@@ -1,6 +1,6 @@
 # Probar la API con Postman
 
-La colección incluye 15 peticiones: mensaje válido, credenciales incorrectas, JWT reutilizado, validación del cuerpo, métodos HTTP y diagnóstico de TRACE. Genera automáticamente un JWT HS256 con identificador nuevo antes de cada petición. No hay que copiar tokens manualmente.
+La colección incluye 15 peticiones: mensaje válido, credenciales incorrectas, JWT reutilizado, validación del cuerpo, métodos HTTP y rechazo de TRACE. Genera automáticamente un JWT HS256 con identificador nuevo antes de cada petición. No hay que copiar tokens manualmente.
 
 ## Preparación local
 
@@ -30,7 +30,7 @@ Puedes ejecutar la colección completa con **Run collection**, una iteración, u
 
 ## URL pública
 
-Si este equipo tiene publicada la demostración, el exportador también crea `Publico_production.postman_environment.json` y los entornos adicionales disponibles. Importa el entorno público y selecciónalo: la misma colección funciona sin modificar las peticiones. Mantén activa la verificación SSL. El equipo, los servicios y el túnel deben seguir encendidos. Si cambia la URL del túnel, vuelve a exportar e importar el entorno actualizado.
+Para publicar Compose ejecuta `py -3 scripts/demo.py --public` e importa el entorno `Publico_Compose`. Para Kubernetes: `py -3 scripts/lab.py --public`. Si este equipo tiene publicada la demostración, el exportador también crea `Publico_production.postman_environment.json` y los entornos adicionales disponibles. Importa el entorno público y selecciónalo: la misma colección funciona sin modificar las peticiones. Mantén activa la verificación SSL. El equipo, los servicios y el túnel deben seguir encendidos. Si cambia la URL del túnel, vuelve a exportar e importar el entorno actualizado.
 
 Cloudflare no es necesario para probar desde el equipo local.
 
@@ -50,8 +50,8 @@ Los entornos de `.local/postman` contienen el secreto de firma y no se versionan
 | Content-Type no admitido | 415 |
 | GET, PUT, PATCH, DELETE, OPTIONS | 405 y texto `ERROR` |
 | HEAD | 405 sin cuerpo, conforme al protocolo HTTP |
-| TRACE | 405 del proxy; puede responder JSON o HTML |
+| TRACE | 405 y texto literal `ERROR`, también desde la entrada pública Pinggy |
 
-El caso TRACE comprueba el rechazo, pero **no acredita el cuerpo literal `ERROR`**. Esa limitación continúa documentada en el proyecto. Las solicitudes con errores intencionales aparecen como pruebas correctas cuando se recibe el error esperado.
+El caso TRACE exige el cuerpo literal `ERROR`. Usa la URL Pinggy actual; una URL antigua de Cloudflare intercepta ese método y no supera esta comprobación. Las URLs gratuitas vencen y deben actualizarse al renovar la sesión. Las solicitudes con errores intencionales aparecen como pruebas correctas cuando se recibe el error esperado.
 
 Si aparece un error de conexión, arranca la aplicación. Si aparece un error de certificado en localhost, revisa el paso 5. Si aparece 401 en el caso válido, revisa el entorno seleccionado y vuelve a exportarlo. No reemplaces `X-JWT-KWY` por otro nombre ni agregues `Bearer`: el contrato pide el token directamente.

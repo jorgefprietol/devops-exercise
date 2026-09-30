@@ -32,7 +32,7 @@ services:
       KONG_DATABASE: 'off'
       KONG_DECLARATIVE_CONFIG: /kong/kong.json
       KONG_ADMIN_LISTEN: 'off'
-      KONG_PROXY_LISTEN: '0.0.0.0:8443 ssl'
+      KONG_PROXY_LISTEN: '0.0.0.0:8443 ssl, 0.0.0.0:8000'
       KONG_STATUS_LISTEN: '0.0.0.0:8100'
       KONG_NGINX_WORKER_PROCESSES: '2'
     volumes: [./.local/kong.json:/kong/kong.json:ro]
@@ -45,6 +45,16 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+  public-tunnel:
+    profiles: [public]
+    image: pinggy/pinggy@sha256:15af4610028da251d36af2f6765693102a188e5628c033ac2ae42ab8ae7e25e7
+    entrypoint: [pinggy]
+    command: [-p, '443', '-R0:kong:8000', free.pinggy.io, 'x:httpsonly']
+    depends_on:
+      kong:
+        condition: service_healthy
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
 volumes:
   redis-data:
 networks:

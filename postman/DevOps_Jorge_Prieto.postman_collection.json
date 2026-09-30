@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ejercicio DevOps - Jorge Prieto",
-    "description": "Colección de estudio y validación de POST /DevOps. Importa un entorno privado generado por scripts/export_postman_env.py. El JWT HS256 se genera con Web Crypto y un jti nuevo antes de cada petición. Requiere Postman actualizado. HTTPS público conserva la validación de certificados. Para el certificado autofirmado de localhost consulta postman/README.md. TRACE es solo diagnóstico: no acredita el cuerpo literal ERROR.",
+    "description": "Colección de estudio y validación de POST /DevOps. Importa un entorno privado generado por scripts/export_postman_env.py. El JWT HS256 se genera con Web Crypto y un jti nuevo antes de cada petición. Requiere Postman actualizado. HTTPS público conserva la validación de certificados. Para el certificado autofirmado de localhost consulta postman/README.md. TRACE debe responder 405 y el texto exacto ERROR; HEAD responde sin cuerpo por el protocolo HTTP. Utiliza la entrada pública Pinggy actual, porque Cloudflare intercepta TRACE.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -606,10 +606,10 @@
       ]
     },
     {
-      "name": "05 - Diagnóstico de infraestructura",
+      "name": "05 - TRACE en el gateway",
       "item": [
         {
-          "name": "TRACE - Rechazo en proxy (405; revisar cuerpo)",
+          "name": "TRACE - Método no permitido (405 y ERROR)",
           "request": {
             "method": "TRACE",
             "header": [
@@ -623,7 +623,7 @@
               }
             ],
             "url": "{{base_url}}/DevOps",
-            "description": "Comprueba únicamente el rechazo HTTP 405. Kong puede devolver JSON y Cloudflare HTML. Un test correcto aquí NO demuestra el requisito de cuerpo literal ERROR; esa limitación permanece documentada."
+            "description": "Kong normaliza el rechazo de TRACE al cuerpo literal ERROR, sin reflejar encabezados ni credenciales. La URL pública debe permitir que la solicitud alcance Kong."
           },
           "event": [
             {
@@ -631,7 +631,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Estado HTTP esperado: 405', () => pm.expect(pm.response.code).to.eql(405));"
+                  "pm.test('Estado HTTP esperado: 405', () => pm.expect(pm.response.code).to.eql(405));",
+                  "pm.test('Cuerpo literal ERROR, sin reflejar credenciales', () => pm.expect(pm.response.text()).to.eql('ERROR'));"
                 ]
               }
             }

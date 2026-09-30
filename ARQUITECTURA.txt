@@ -99,8 +99,13 @@ Cloudflare limita Quick Tunnels a desarrollo y pruebas, sin garantía de servici
 https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/
 
 MÉTODOS HTTP Y ALCANCE DEL CONTRATO
-GET, PUT, PATCH, DELETE y OPTIONS devuelven 405 con ERROR. HEAD devuelve
-405 sin cuerpo conforme a RFC 9110. TRACE se rechaza antes del servicio:
-Kong devuelve 405 JSON y Cloudflare 405 HTML. No se presenta este último
-caso como cumplimiento literal de ERROR. No se habilita reflexión TRACE.
+GET, PUT, PATCH, DELETE, OPTIONS y TRACE devuelven 405 con ERROR. HEAD
+devuelve 405 sin cuerpo conforme a RFC 9110. El plugin global post-function
+de Kong normaliza el 405, incluso cuando Nginx lo genera antes del enrutamiento.
+Solo cambia los errores 405; no refleja encabezados ni habilita TRACE.
+La publicación actual utiliza Pinggy porque permite conservar esa respuesta.
+HTTPS termina en el proveedor y el túnel al origen utiliza SSH; Kong escucha
+HTTP solo dentro de la red privada. La URL gratuita dura hasta 60 minutos
+y debe renovarse para una sesión posterior; no se presenta como servicio 24/7.
+https://pinggy.io/docs/
 https://www.rfc-editor.org/rfc/rfc9110.html#name-head

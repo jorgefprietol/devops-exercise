@@ -5,6 +5,11 @@ import json
 import os
 import subprocess
 import sys
+import ssl
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from environment_config import credentials, ENVIRONMENTS, PORTS
 
 
@@ -21,6 +26,24 @@ def main():
     command = [sys.executable, 'scripts/smoke.py', url]
     if args.local:
         command.append('--local')
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme != 'https' or parsed.hostname not in ('127.0.0.1', 'localhost'):
+            parser.error('--local solo admite HTTPS en loopback')
+        # Tras un rollout, el primer acceso puede hacer que kubectl detecte
+        # el pod anterior y el supervisor reconecte. No reintentamos un POST.
+        for attempt in range(10):
+            try:
+                request = urllib.request.Request(url.rstrip('/') + '/DevOps', method='HEAD')
+                urllib.request.urlopen(request, context=ssl._create_unverified_context(), timeout=3).close()
+                break
+            except urllib.error.HTTPError as error:
+                if error.code == 405:
+                    break
+                raise
+            except (urllib.error.URLError, TimeoutError):
+                if attempt == 9:
+                    raise
+                time.sleep(2)
     subprocess.run(command, cwd=root, env=env, check=True)
     print('Entorno verificado: ' + args.environment)
 

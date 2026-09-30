@@ -102,6 +102,10 @@ def main():
                     processed.add(ident)
                     continue
                 if not validate(item): continue
+                # El proveedor gratuito puede renovar la URL al reiniciar el pod.
+                # Se obtiene y verifica la entrada actual antes de registrar el despliegue.
+                subprocess.run([sys.executable, str(ROOT / 'scripts/public_tunnel.py'),
+                                item['environment']], cwd=ROOT, check=True, timeout=240)
                 urls = json.loads((PRIVATE / 'public_urls.json').read_text())
                 url = urls.get(item['environment'])
                 if not url:

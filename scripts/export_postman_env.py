@@ -1,5 +1,6 @@
 """Exporta entornos privados para Postman sin imprimir sus credenciales."""
 import json
+import argparse
 from pathlib import Path
 import uuid
 
@@ -7,12 +8,22 @@ from environment_config import credentials
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--compose-port', type=int, default=8443)
+    args = parser.parse_args()
+    if not 1024 <= args.compose_port <= 65535:
+        parser.error('Puerto local no válido')
     root = Path(__file__).resolve().parents[1]
     output = root / '.local' / 'postman'
     output.mkdir(parents=True, exist_ok=True)
     urls_file = root / '.local' / 'public_urls.json'
     urls = json.loads(urls_file.read_text(encoding='utf-8-sig')) if urls_file.exists() else {}
-    targets = [('Local_Compose', 'production', 'https://127.0.0.1:8443')]
+    targets = [('Local_Compose', 'production', f'https://127.0.0.1:{args.compose_port}')]
+    if (root / '.local/kubeconfig').exists():
+        targets.append(('Local_Kubernetes', 'production', 'https://127.0.0.1:9443'))
+    compose_url = root / '.local/compose_public_url.txt'
+    if compose_url.exists():
+        targets.append(('Publico_Compose', 'production', compose_url.read_text(encoding='utf-8').strip()))
     targets += [(f'Publico_{env}', env, url) for env, url in urls.items()]
     for name, env, url in targets:
         values = credentials(root, env)

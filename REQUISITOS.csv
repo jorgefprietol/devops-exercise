@@ -1,7 +1,7 @@
 Requisito,Implementación,Comprobación,Alcance
 Repositorio público,GitHub jorgefprietol/devops-exercise,Código y configuración versionados,Credenciales privadas excluidas
 POST /DevOps y JSON exacto,ApiHandler.cs,Pruebas de contrato y smoke.py,Respuesta en inglés conforme al enunciado
-Otros métodos devuelven ERROR,HTTP 405 y cuerpo ERROR,GET PUT PATCH DELETE OPTIONS,HEAD sin cuerpo por HTTP; TRACE rechazado por gateway o túnel sin ERROR literal
+Otros métodos devuelven ERROR,HTTP 405 y cuerpo ERROR,GET PUT PATCH DELETE OPTIONS TRACE,TRACE normalizado en Kong y verificado por Pinggy; HEAD sin cuerpo por HTTP
 API Key del ejercicio,Encabezado X-Parse-REST-API-Key,Credencial válida e inválida,Valor fijo público exigido por el enunciado
 JWT por transacción,TokenValidator y Redis SET NX,Repetición secuencial y concurrente,JWT de máximo cinco minutos con jti nuevo
 Contenedores portables,Dockerfile y compose.yaml,scripts/demo.py,Requiere Docker Linux y Python

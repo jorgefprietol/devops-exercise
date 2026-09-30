@@ -18,6 +18,14 @@ def config(local=False):
     ]
     return {
         '_format_version': '3.0',
+        # Es global para alcanzar también el 405 generado por Nginx antes del
+        # enrutamiento (TRACE). Solo normaliza errores; nunca refleja la petición.
+        'plugins': [{'name': 'post-function', 'config': {
+            'header_filter': ["if kong.response.get_status() == 405 then "
+                "kong.response.set_header('Content-Type', 'text/plain; charset=utf-8'); "
+                "kong.response.set_header('Content-Length', '5'); end"],
+            'body_filter': ["if kong.response.get_status() == 405 then "
+                "kong.response.set_raw_body('ERROR'); end"]}}],
         'consumers': [{'username': 'evaluator',
           'keyauth_credentials': [{'key': os.environ['API_KEY']}],
           'jwt_secrets': [{'key': 'devops-candidate', 'algorithm': 'HS256', 'secret': os.environ['JWT_SECRET']}]}],

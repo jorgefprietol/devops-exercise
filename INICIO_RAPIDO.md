@@ -55,27 +55,51 @@ py -3 "D:/Proyectos/devops-exercise/scripts/demo.py" --test-only
 
 Sustituye la carpeta del ejemplo por la ubicación real. Una vez localizado el archivo, el script trabaja automáticamente desde la raíz de su propio proyecto.
 
-## Qué función cumple Cloudflare
+## Publicar y probar con un solo comando
 
-| Forma de probar | Necesita Cloudflare | Alcance |
-| --- | --- | --- |
-| Docker Compose en el equipo del evaluador | No | Instalación local con el comando anterior. |
-| Kubernetes por HTTPS local | No | Cluster y entorno previamente preparados; comandos en PUBLICACION.txt. |
-| Acceso desde Internet al PC de esta demostración | Se utiliza como túnel temporal | Publica HTTPS mientras el PC, Docker y el túnel estén activos. |
-| Aplicación en otro servidor o proveedor de nube | No es obligatorio | Necesita entrada accesible, certificado TLS válido y configuración de despliegue. |
+```sh
+py -3 scripts/demo.py --public
+```
 
-Cloudflare no figura como requisito del ejercicio. La instalación local permite reproducir la solución, pero no sustituye la URL HTTPS accesible desde Internet cuando el evaluador necesita probar el HOST entregado desde su equipo.
+Este comando construye la aplicación, inicia los contenedores, abre un túnel Pinggy, comprueba HTTPS (incluido `TRACE → 405 ERROR`) y genera los archivos privados de Postman. Copia la URL que imprime la consola. Cloudflare no es necesario.
 
-El pipeline publicado actualmente comprueba una URL pública después de desplegar. Para esa comprobación necesita el túnel activo o un acceso HTTPS alternativo configurado. La demostración Compose es independiente de ese flujo de publicación.
+La sesión gratuita dura hasta 60 minutos. Repite el mismo comando para crear otra sesión y URL. Mantén Docker, el PC e Internet activos. No es una URL permanente ni alojamiento 24/7.
+
+## Kubernetes completo
+
+Con Docker Desktop en modo Linux y Python 3.10 o posterior:
+
+```sh
+py -3 scripts/lab.py --public
+```
+
+El script descarga `kind` y `kubectl` si faltan, comprueba sus SHA-256, crea un nodo de control y dos trabajadores, prepara Calico y Metrics Server, conserva los secretos y despliega Kong, dos réplicas de la API, Redis persistente y HPA. Utiliza la imagen pública verificada por digest en `infra/release-image.txt`; permite sustituirla mediante `--image`. No requiere SDK .NET ni cuenta de nube. La primera ejecución necesita Internet y descarga varias imágenes; el laboratorio se ha probado con 16 GB asignados a Docker.
+
+Para preparar además los otros dos entornos:
+
+```sh
+py -3 scripts/lab.py --public --all-environments
+```
+
+La producción local está en `https://127.0.0.1:9443/DevOps`. Los otros namespaces se pueden probar por sus URLs públicas. Los tres nodos comparten el equipo; esto demuestra distribución lógica, sin equivaler a alta disponibilidad física.
+
+Renueva únicamente la publicación de un entorno:
+
+```sh
+py -3 scripts/public_tunnel.py production --renew
+```
+
+El pipeline remoto y su agente requieren la cuenta del propietario del repositorio. Descargar el código no concede acceso a su GitHub ni conecta automáticamente otro equipo al despliegue del propietario. La ejecución local y la publicación temporal funcionan sin esos accesos.
 
 ## TRACE y HEAD
 
-- GET, PUT, PATCH, DELETE y OPTIONS devuelven HTTP 405 con el texto `ERROR`.
-- HEAD devuelve HTTP 405 sin cuerpo. Es el comportamiento requerido por HTTP, no un fallo de instalación.
-- En la configuración actual, TRACE devuelve HTTP 405 con JSON al acceder directamente a Kong y HTTP 405 con HTML al pasar por Cloudflare. Se rechaza antes de la API; retirar Cloudflare por sí solo no cambia la respuesta de Kong.
+- GET, PUT, PATCH, DELETE, OPTIONS y TRACE devuelven HTTP 405 con el texto exacto `ERROR`.
+- Kong normaliza también el 405 generado por Nginx antes del enrutamiento. No se habilita la reflexión de encabezados de TRACE.
+- HEAD devuelve HTTP 405 sin cuerpo, como exige HTTP. Pedir un cuerpo literal para HEAD sería incompatible con el protocolo.
+- La entrada pública Pinggy se verifica con la misma prueba. Una URL antigua de Cloudflare continúa interceptando TRACE: usa la URL actual que imprime el script.
 
-Si la evaluación exige específicamente `405 ERROR` también para TRACE, hay que adaptar el tratamiento del error en el gateway y usar una entrada pública que permita controlar esa respuesta. El objetivo sería rechazar el método con el texto solicitado, sin habilitar la función de reflejar encabezados de TRACE. Esa adaptación no forma parte de la implementación actual. Las instrucciones de instalación no eliminan esta diferencia de contrato.
+El cliente usa HTTPS con certificado público válido; el tramo de túnel está cifrado por SSH. El HTTP de Kong queda dentro de la red Docker o Kubernetes y no tiene un puerto abierto en el host.
 
-Referencias: [semántica de HEAD en RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-head) y [función y límites de Cloudflare Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).
+Consulta [Postman](postman/README.md), [operación del pipeline](PUBLICACION.txt) y [decisiones de arquitectura](ARQUITECTURA.txt).
 
-Para Kubernetes, entornos y versiones, consulta [PUBLICACION.txt](PUBLICACION.txt). Las decisiones y límites están en [ARQUITECTURA.txt](ARQUITECTURA.txt).
+Referencias: [HEAD en RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-head), [túneles Pinggy](https://pinggy.io/docs/) y [límites de la modalidad gratuita](https://pinggy.io/).

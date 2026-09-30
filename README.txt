@@ -37,8 +37,8 @@ X-JWT-KWY y los textos del contrato se conservan como aparecen en el enunciado.
 El cliente envía el JWT sin Bearer; Kong realiza la adaptación internamente.
 GET, PUT, PATCH, DELETE y OPTIONS: HTTP 405 y texto ERROR.
 HEAD: HTTP 405 sin cuerpo, conforme al protocolo HTTP.
-TRACE es rechazado por Kong (405 JSON) o Cloudflare (405 HTML) antes de la API;
-el cuerpo literal ERROR no está garantizado para ese método en la entrada pública.
+TRACE: HTTP 405 con cuerpo literal ERROR, normalizado por Kong sin reflejar
+la petición. La entrada pública Pinggy conserva esta respuesta; Cloudflare no.
 Credenciales inválidas: 401; Kong puede responder 403 para una API Key incorrecta.
 Cuerpo inválido: 400. Tipo no admitido: 415. Cuerpo excesivo: 413.
 JWT reutilizado: 409. Redis no disponible: 503. Ruta inexistente: 404.
@@ -47,7 +47,7 @@ DECISIONES
 - Se implementa la respuesta indicada; no se incluye una cola de envío real.
 - timeToLifeSec pertenece al mensaje y admite de 1 a 86400 segundos.
 - La vigencia del JWT es independiente: máximo cinco minutos.
-- El JWT se emite por consola, sin añadir otra ruta pública.
+- El JWT se emite por consola o Postman, sin añadir otra ruta pública.
 - /health/live y /health/ready son rutas internas que Kong no publica.
 - Los secretos se leen del entorno. .env y .local no se versionan.
 
@@ -171,3 +171,26 @@ scripts: inicialización, despliegue, validación y operación.
 infra: configuración de Kubernetes local.
 evidence: resultados de las comprobaciones.
 .github/workflows: integración y despliegue automatizados.
+
+ARRANQUE COMPLETO CON UN COMANDO
+Solo Docker Desktop (Linux) y Python >=3.10 como requisitos previos:
+py -3 scripts/demo.py --public
+Construye la API, inicia Kong, dos APIs y Redis, publica HTTPS temporal,
+prueba POST y métodos inválidos incluido TRACE y exporta entornos Postman.
+Sin --public funciona completamente en local y no crea un túnel.
+
+Laboratorio Kubernetes: dos trabajadores, Calico, métricas, HPA y persistencia:
+py -3 scripts/lab.py --public
+Agregar --all-environments para preparar también staging y development.
+Descarga kind/kubectl si faltan y verifica sus SHA-256; instala dependencias
+en un entorno virtual privado. La API usa el digest de infra/release-image.txt,
+una imagen pública verificada; --image permite elegir otro digest.
+La primera instalación necesita Internet, espacio para imágenes y suficiente
+memoria en Docker (este laboratorio se ha probado con 16 GB asignados).
+Los tres nodos lógicos comparten el equipo; no son tres máquinas físicas.
+
+Pinggy gratuito dura hasta 60 minutos por sesión. Para renovar Kubernetes:
+py -3 scripts/public_tunnel.py production --renew
+Actualiza la URL y Postman; requiere compartir la URL nueva. No es alojamiento
+24/7 ni una dirección permanente. El túnel termina TLS y transporta el tráfico
+al origen mediante SSH. El puerto HTTP interno de Kong no se publica al host.

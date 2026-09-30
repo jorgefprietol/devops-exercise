@@ -47,6 +47,9 @@ Ejecuciones automáticas por rama y etiqueta, más una ejecución manual v1.0.0:
 evidence/ejecuciones-cierre.json. Detalle funcional: evidence/cierre-entornos.json.
 
 EXCEPCIONES DEL CONTRATO HTTP
-HEAD: 405 sin cuerpo, como exige HTTP. TRACE: 405 JSON desde Kong o HTML
-desde Cloudflare; el rechazo ocurre antes de la API y no contiene ERROR literal.
-GET, PUT, PATCH, DELETE y OPTIONS sí devuelven 405 con cuerpo ERROR.
+HEAD: 405 sin cuerpo, como exige HTTP. TRACE: 405 y cuerpo literal ERROR,
+normalizado por Kong y conservado por la entrada pública Pinggy. GET, PUT,
+PATCH, DELETE y OPTIONS también devuelven 405 con cuerpo ERROR.
+Inicio con publicación: py -3 scripts/demo.py --public.
+Kubernetes completo: py -3 scripts/lab.py --public.
+La URL pública gratuita dura hasta 60 minutos por sesión; debe renovarse.
