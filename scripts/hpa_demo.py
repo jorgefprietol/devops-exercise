@@ -1,11 +1,15 @@
 """Prueba acotada de CPU para comprobar el HPA; no mide capacidad de tráfico."""
 from pathlib import Path
+import argparse
 import json
 import os
 import subprocess
 import time
 
 root = Path(__file__).resolve().parents[1]
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output', type=Path, default=root / '.local/hpa-verificacion.json')
+args = parser.parse_args()
 env = os.environ.copy()
 env['KUBECONFIG'] = str(root / '.local/kubeconfig')
 base = ['kubectl', '-n', 'devops-production']
@@ -30,5 +34,6 @@ load.wait(timeout=10)
 assert any((x.get('desired') or 0) > before for x in records), 'El HPA no solicitó réplicas adicionales'
 assert any((x.get('current') or 0) > before for x in records), 'No se observaron nuevas réplicas'
 assert any(x['available'] > before for x in records), 'Las réplicas adicionales no alcanzaron disponibilidad'
-(root/'evidence/hpa-live.json').write_text(json.dumps({'test':'Carga sintética de CPU de 90 segundos en un pod; no mide rendimiento HTTP','initial':before,'records':records},indent=2),encoding='utf-8')
+args.output.parent.mkdir(parents=True, exist_ok=True)
+args.output.write_text(json.dumps({'test':'Carga sintética de CPU de 90 segundos en un pod; no mide rendimiento HTTP','initial':before,'records':records},indent=2),encoding='utf-8')
 print('CORRECTO: el HPA aumentó las réplicas disponibles y la carga de CPU terminó.',flush=True)

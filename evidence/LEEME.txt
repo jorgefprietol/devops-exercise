@@ -2,7 +2,8 @@ RESULTADOS DE VALIDACIÓN
 
 El resumen conserva las comprobaciones locales y remotas realizadas.
 Los registros completos de cada versión se consultan en GitHub Actions.
-La etapa inicial de TDD registró seis pruebas fallidas antes de implementar
-el contrato; el conjunto posterior contiene 43 pruebas correctas.
+Los ciclos TDD documentados corresponden a cambios concretos de cabeceras
+y portabilidad del despliegue. El conjunto contiene 43 pruebas .NET y 16 Python.
+No se presenta la existencia de pruebas como evidencia de TDD de todo el código.
 Las pruebas locales de seguridad usan un almacén en memoria; la integración
 comprueba Redis real. La cobertura no implica cobertura completa del adaptador.

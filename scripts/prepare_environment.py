@@ -17,7 +17,7 @@ def main():
     args = parser.parse_args()
     env = os.environ.copy()
     env.update(credentials(ROOT, args.environment, create=True))
-    env.update(KUBECONFIG=str(ROOT / '.local/kubeconfig'), LAB_MODE='kind',
+    env.update(KUBECONFIG=str(ROOT / '.local/kubeconfig'), KUBECTL_CONTEXT='kind-devops-lab', LAB_MODE='kind',
                DEPLOY_ENV=args.environment, IMAGE=args.image)
     for key, name in [('TLS_CRT_B64', 'tls.crt'), ('TLS_KEY_B64', 'tls.key')]:
         env[key] = base64.b64encode((ROOT / '.local' / name).read_bytes()).decode()

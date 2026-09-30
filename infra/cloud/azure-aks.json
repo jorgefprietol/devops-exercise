@@ -1,0 +1,5 @@
+{
+  "STORAGE_CLASS": "managed-csi",
+  "LOAD_BALANCER_CLASS": "",
+  "LOAD_BALANCER_ANNOTATIONS": "{}"
+}

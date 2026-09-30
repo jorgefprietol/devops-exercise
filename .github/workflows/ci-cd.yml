@@ -167,7 +167,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.build.outputs.sha }}
-      - name: Solicitar despliegue y esperar la verificación pública
+      - name: Solicitar despliegue y comprobar Kubernetes sin túnel público
         env:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_ENV: ${{ needs.build.outputs.target }}

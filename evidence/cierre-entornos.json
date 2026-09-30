@@ -1,26 +1,98 @@
 {
-  "fecha_utc": "2026-09-30T21:00:49.804219+00:00",
+  "fecha_utc": "2026-09-30T23:20:04.197470+00:00",
   "entornos": [
     {
       "entorno": "production",
-      "url": "https://jpphr-181-175-166-110.run.pinggy-free.link",
-      "pruebas_publicas": "correctas",
       "pruebas_locales": "correctas",
-      "namespace": "devops-production"
+      "cluster": {
+        "fecha_utc": "2026-09-30T23:20:04.197780+00:00",
+        "namespace": "devops-production",
+        "canal": "HTTPS local mediante kubectl port-forward; sin túnel público",
+        "replicas": {
+          "devops-api": {
+            "listas": 2,
+            "nodos": [
+              "devops-lab-worker",
+              "devops-lab-worker2"
+            ]
+          },
+          "kong": {
+            "listas": 2,
+            "nodos": [
+              "devops-lab-worker",
+              "devops-lab-worker2"
+            ]
+          }
+        },
+        "hpa": {
+          "minimo": 2,
+          "maximo": 6,
+          "metricas_disponibles": true
+        },
+        "contrato_autenticacion_y_repeticiones": "correcto"
+      }
     },
     {
       "entorno": "staging",
-      "url": "https://gfleg-181-175-166-110.free.pinggy.net",
-      "pruebas_publicas": "correctas",
       "pruebas_locales": "correctas",
-      "namespace": "devops-staging"
+      "cluster": {
+        "fecha_utc": "2026-09-30T23:20:05.828061+00:00",
+        "namespace": "devops-staging",
+        "canal": "HTTPS local mediante kubectl port-forward; sin túnel público",
+        "replicas": {
+          "devops-api": {
+            "listas": 2,
+            "nodos": [
+              "devops-lab-worker",
+              "devops-lab-worker2"
+            ]
+          },
+          "kong": {
+            "listas": 2,
+            "nodos": [
+              "devops-lab-worker",
+              "devops-lab-worker2"
+            ]
+          }
+        },
+        "hpa": {
+          "minimo": 2,
+          "maximo": 6,
+          "metricas_disponibles": true
+        },
+        "contrato_autenticacion_y_repeticiones": "correcto"
+      }
     },
     {
       "entorno": "development",
-      "url": "https://ehfzo-181-175-166-110.free.pinggy.net",
-      "pruebas_publicas": "correctas",
       "pruebas_locales": "correctas",
-      "namespace": "devops-development"
+      "cluster": {
+        "fecha_utc": "2026-09-30T23:20:07.176608+00:00",
+        "namespace": "devops-development",
+        "canal": "HTTPS local mediante kubectl port-forward; sin túnel público",
+        "replicas": {
+          "devops-api": {
+            "listas": 2,
+            "nodos": [
+              "devops-lab-worker",
+              "devops-lab-worker2"
+            ]
+          },
+          "kong": {
+            "listas": 2,
+            "nodos": [
+              "devops-lab-worker",
+              "devops-lab-worker2"
+            ]
+          }
+        },
+        "hpa": {
+          "minimo": 2,
+          "maximo": 6,
+          "metricas_disponibles": true
+        },
+        "contrato_autenticacion_y_repeticiones": "correcto"
+      }
     }
   ],
   "secretos_independientes": true,
@@ -56,30 +128,5 @@
       "estado": 401
     }
   ],
-  "metodos_especiales": [
-    {
-      "canal": "local",
-      "metodo": "HEAD",
-      "estado": 405,
-      "tipo_cuerpo": "vacio"
-    },
-    {
-      "canal": "local",
-      "metodo": "TRACE",
-      "estado": 405,
-      "tipo_cuerpo": "ERROR"
-    },
-    {
-      "canal": "publico",
-      "metodo": "HEAD",
-      "estado": 405,
-      "tipo_cuerpo": "vacio"
-    },
-    {
-      "canal": "publico",
-      "metodo": "TRACE",
-      "estado": 405,
-      "tipo_cuerpo": "ERROR"
-    }
-  ]
+  "requiere_tunel_publico": false
 }

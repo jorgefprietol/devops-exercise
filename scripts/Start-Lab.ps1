@@ -1,5 +1,5 @@
 ﻿param([string]$PythonExe, [int]$AgentHours = 8,
-    [ValidateSet('production','staging','development')][string]$Environment = 'production')
+    [ValidateSet('production','staging','development')][string]$Environment = 'production', [switch]$Public)
 $ErrorActionPreference = 'Stop'
 $labRoot = Split-Path $PSScriptRoot -Parent
 Set-Location -LiteralPath $labRoot
@@ -32,15 +32,18 @@ if ($Environment -ne 'production') {
         $forward.Id | Set-Content $forwardPid
     }
 }
-& $PythonExe scripts/public_tunnel.py $Environment
-if ($LASTEXITCODE -ne 0) { throw 'No se pudo publicar y verificar el entorno. Revisa los pods public-tunnel y Kong.' }
-$publicUrl = (Get-Content '.local/public_urls.json' -Raw | ConvertFrom-Json).$Environment
+if ($Public) {
+    & $PythonExe scripts/public_tunnel.py $Environment --renew
+    if ($LASTEXITCODE -ne 0) { throw 'No se pudo publicar el entorno; el agente puede operar sin -Public.' }
+    $publicUrl = (Get-Content '.local/public_urls.json' -Raw | ConvertFrom-Json).$Environment
+    Write-Host "API publica opcional ($Environment): $publicUrl/DevOps"
+}
 $agentProcess = Get-LabProcess '.local\agent.pid' $PythonExe
 if (-not $agentProcess) {
     $agentProcess = Start-Process -FilePath $PythonExe -ArgumentList @('-X','utf8','-u','scripts/local_deploy_agent.py','--hours',"$AgentHours") -WorkingDirectory $labRoot -WindowStyle Hidden -RedirectStandardOutput '.local/agent.log' -RedirectStandardError '.local/agent-error.log' -PassThru
     $agentProcess.Id | Set-Content '.local\agent.pid'
 }
-Write-Host "API publica ($Environment): $publicUrl/DevOps"
-Write-Host 'Túnel Pinggy gratuito: hasta 60 minutos por URL. Repite este script para actualizarla.'
+Write-Host "API local ($Environment): https://127.0.0.1:$port/DevOps"
+Write-Host 'El pipeline verifica el cluster sin depender de una URL pública.'
 Write-Host 'Pipeline: https://github.com/jorgefprietol/devops-exercise/actions'
 Write-Host 'El agente atiende despliegues durante la sesion configurada; el servicio depende del PC y Docker.'

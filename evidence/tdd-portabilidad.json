@@ -1,0 +1,27 @@
+{
+  "cambio": "Configuración de infraestructura portable y despliegue local sin URL pública",
+  "base": "10baab9b7aa84f318d7f00df5267793eac053c41",
+  "rojo": {
+    "fecha_utc": "2026-09-30T23:12:34.337049+00:00",
+    "pruebas_ejecutadas": 5,
+    "fallos_y_subcasos": 6,
+    "errores": 1,
+    "causas": [
+      "StorageClass ignorada",
+      "Configuración de LoadBalancer ignorada",
+      "Anotaciones inválidas no rechazadas",
+      "El agente exigía public_url"
+    ],
+    "sha256_registros": {
+      "infra-rojo.txt": "37ced30b174777697b78bb4b740c9e224473614c5a27530827eb158fc118befa",
+      "despliegue-rojo.txt": "28dc9fe314e389aa7a29432a4aab30f7f26a23671f7acfa9fd262ac45cbf6d4a"
+    }
+  },
+  "verde": {
+    "fecha_utc": "2026-09-30T23:19:44.518782+00:00",
+    "pruebas_python": 16,
+    "resultado": "correcto",
+    "sha256_registro": "ead7c1671448b5b77a990bacb34b8ca32b8197738859592d06a0f028bd72766b"
+  },
+  "alcance": "Se ejecutaron las pruebas nuevas antes de implementar estos cambios; no se afirma TDD de todo el código previo."
+}

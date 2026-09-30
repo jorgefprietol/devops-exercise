@@ -27,10 +27,9 @@ for _ in range(120):
     if statuses:
         state = statuses[0]['state']
         if state == 'success':
-            url = statuses[0].get('environment_url', '')
-            print('Despliegue y pruebas HTTPS públicas correctos: ' + url, flush=True)
+            print('Despliegue y pruebas HTTPS locales correctos; no requiere túnel público.', flush=True)
             with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
-                summary.write(f'### Despliegue Kubernetes verificado\n\n[API pública]({url}/DevOps) · despliegue {ident}\n\nSe requiere POST, API Key y un JWT nuevo.\n')
+                summary.write(f'### Despliegue Kubernetes verificado\n\nEntorno: {os.environ["DEPLOY_ENV"]} · despliegue {ident}\n\nDos nodos, réplicas listas, HPA activo y pruebas HTTPS verificadas mediante un port-forward autenticado. No requiere una URL pública.\n\nPara reproducir localmente: `python3 scripts/lab.py`. Se requiere POST, API Key y un JWT nuevo.\n')
             break
         if state in ('failure', 'error', 'inactive'):
             raise RuntimeError('El despliegue local comunicó el estado ' + state)

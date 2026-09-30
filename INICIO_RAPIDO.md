@@ -70,7 +70,7 @@ La sesión gratuita dura hasta 60 minutos. Repite el mismo comando para crear ot
 Con Docker Desktop en modo Linux y Python 3.10 o posterior:
 
 ```sh
-py -3 scripts/lab.py --public
+py -3 scripts/lab.py
 ```
 
 El script descarga `kind` y `kubectl` si faltan, comprueba sus SHA-256, crea un nodo de control y dos trabajadores, prepara Calico y Metrics Server, conserva los secretos y despliega Kong, dos réplicas de la API, Redis persistente y HPA. Utiliza la imagen pública verificada por digest en `infra/release-image.txt`; permite sustituirla mediante `--image`. No requiere SDK .NET ni cuenta de nube. La primera ejecución necesita Internet y descarga varias imágenes; el laboratorio se ha probado con 16 GB asignados a Docker.
@@ -78,10 +78,10 @@ El script descarga `kind` y `kubectl` si faltan, comprueba sus SHA-256, crea un 
 Para preparar además los otros dos entornos:
 
 ```sh
-py -3 scripts/lab.py --public --all-environments
+py -3 scripts/lab.py --all-environments
 ```
 
-La producción local está en `https://127.0.0.1:9443/DevOps`. Los otros namespaces se pueden probar por sus URLs públicas. Los tres nodos comparten el equipo; esto demuestra distribución lógica, sin equivaler a alta disponibilidad física.
+La producción local está en `https://127.0.0.1:9443/DevOps`. Los tres namespaces se verifican sin URL pública con `py -3 scripts/verify_environments.py`. Para acceso persistente a staging/development utiliza Start-AllEnvironments.ps1. Los tres nodos comparten el equipo; esto demuestra distribución lógica, sin equivaler a alta disponibilidad física.
 
 Renueva únicamente la publicación de un entorno:
 
@@ -99,6 +99,8 @@ El pipeline remoto y su agente requieren la cuenta del propietario del repositor
 - La entrada pública Pinggy se verifica con la misma prueba. Una URL antigua de Cloudflare continúa interceptando TRACE: usa la URL actual que imprime el script.
 
 El cliente usa HTTPS con certificado público válido; el tramo de túnel está cifrado por SSH. El HTTP de Kong queda dentro de la red Docker o Kubernetes y no tiene un puerto abierto en el host.
+
+El pipeline también comprueba el despliegue sin túnel público. Para publicar opcionalmente, añade `--public` al comando de laboratorio. Para un clúster existente en AWS/Azure consulta [NUBE.md](NUBE.md).
 
 Consulta [Postman](postman/README.md), [operación del pipeline](PUBLICACION.txt) y [decisiones de arquitectura](ARQUITECTURA.txt).
 

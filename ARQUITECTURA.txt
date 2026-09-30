@@ -34,8 +34,8 @@ DOS FORMAS DE EJECUCIÓN
    Los tres nodos son lógicos y comparten un equipo físico.
 
 CONTROLES APLICADOS
-- HTTPS exterior; certificado público validado y certificado del origen
-  verificado por cloudflared. La excepción --local se limita a loopback.
+- HTTPS local en Kong y HTTPS exterior opcional mediante Pinggy. La excepción
+  --local se limita a loopback; los dominios públicos requieren TLS válido.
 - API Key en encabezado y JWT HS256 breve, firmado y único por transacción.
 - La API Key fija es parte del enunciado, no un secreto de producción.
 - El secreto de firma y la contraseña Redis se generan localmente y no se
@@ -58,7 +58,7 @@ CONTROLES APLICADOS
 
 DESPLIEGUE Y RECUPERACIÓN
 GitHub Actions -> imagen GHCR -> solicitud de despliegue -> agente local
--> Kubernetes -> prueba HTTPS pública -> resultado comunicado a GitHub.
+-> Kubernetes -> prueba HTTPS por port-forward local -> resultado comunicado a GitHub.
 
 El agente solo acepta solicitudes del flujo y propietario configurados,
 comprueba las etapas previas y excluye pull requests. La publicación de master
@@ -67,7 +67,7 @@ development, staging y production tienen namespaces, Redis, PVC y secretos
 JWT independientes. La API Key fija se conserva por exigencia del ejercicio.
 Producción recibe tráfico por NodePort; staging y development usan un
 port-forward TLS de loopback supervisado que reconecta si cambia el pod de Kong.
-Cada entorno tiene su túnel HTTPS; compartir el PC no proporciona aislamiento físico.
+El túnel HTTPS es opcional y no interviene en el pipeline; compartir el PC no proporciona aislamiento físico.
 El usuario de gh en el PC debe tener acceso a Deployments del repositorio;
 este laboratorio no representa una plataforma compartida entre varios equipos.
 

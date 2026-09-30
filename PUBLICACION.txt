@@ -1,105 +1,93 @@
 OPERACIÓN DEL DESPLIEGUE
 
-GitHub Actions compila, prueba y publica la imagen. La etapa de despliegue
-registra una solicitud en GitHub Deployments. El agente local la consulta
-mediante HTTPS, comprueba origen, etapas previas y versión, aplica Kubernetes
-y devuelve el resultado. Excluye las solicitudes de cambios y conserva los
-secretos y el acceso al cluster dentro del equipo.
+GitHub Actions compila, prueba y publica la imagen por digest. El despliegue
+registra una solicitud en GitHub Deployments. El agente del propietario
+comprueba origen, versión y etapas previas, aplica Kubernetes y comunica
+el resultado. Las solicitudes canceladas y los pull requests no se despliegan.
 
-RED
-Internet -> HTTPS público Pinggy -> túnel cifrado SSH -> Kong (HTTP interno)
--> Servicio de la API -> Redis. No se publica el puerto HTTP interno al host.
-El acceso HTTPS local a Kubernetes sigue disponible en 127.0.0.1:9443.
-El cliente debe presentar API Key y JWT. TRACE devuelve 405 y ERROR también
-por la URL pública; HEAD responde sin cuerpo conforme al protocolo HTTP.
+La verificación usa kubectl port-forward autenticado, limitado a 127.0.0.1,
+con un puerto temporal que se cierra al terminar. Comprueba HTTPS, contrato,
+autenticación, JWT repetidos y concurrencia, dos réplicas de API y Kong en dos
+nodos diferentes y HPA con métricas disponibles. No requiere URL pública,
+Pinggy ni Cloudflare. El PC, Docker y el agente sí deben estar encendidos.
 
 INSTALACIÓN COMPLETA EN OTRO EQUIPO
-Requisitos previos: Docker Desktop iniciado con contenedores Linux, Python
-3.10 o posterior, Internet y recursos disponibles (probado con 16 GB en Docker).
-Desde la carpeta descargada del repositorio:
-py -3 scripts/lab.py --public
-O para preparar production, staging y development:
-py -3 scripts/lab.py --public --all-environments
+Docker Linux y Python 3.10 o posterior; Internet para la primera descarga.
+Desde la carpeta del repositorio:
+py -3 scripts/lab.py --all-environments
 
-El script instala herramientas privadas con comprobación SHA-256, prepara
-kind con dos trabajadores, Calico, Metrics Server, TLS local y manifiestos.
-Las dependencias Python quedan en un entorno virtual privado. Usa una imagen
-pública verificada por digest desde infra/release-image.txt; --image permite
-otra versión. No requiere SDK .NET ni acceso a la cuenta de GitHub de Jorge.
-La configuración y los volúmenes existentes se conservan.
+En Linux/macOS sustituye py -3 por python3. El script prepara kind, dos
+trabajadores, Calico, Metrics Server, TLS y tres namespaces con secretos
+independientes. Usa la imagen de infra/release-image.txt; --image selecciona
+otra imagen por digest. El laboratorio se ha probado con 16 GB para Docker.
+No requiere cuenta cloud ni SDK .NET. No crea servidores físicos independientes.
 
-Para una demostración más ligera que construye la API localmente:
-py -3 scripts/demo.py --public
-Compose ofrece dos instancias y balanceo; el HPA y los dos nodos trabajadores
-se demuestran con lab.py. Sin --public, ambos scripts trabajan en local.
-En Linux y macOS sustituye py -3 por python3.
+Para la demostración Docker más ligera:
+py -3 scripts/demo.py
 
-REANUDAR EL PIPELINE DEL PROPIETARIO
-Abrir Docker Desktop y ejecutar desde la raíz del repositorio:
+Compose tiene dos instancias detrás de Kong. El laboratorio Kubernetes añade
+dos nodos trabajadores y HPA. La instalación local no requiere acceso a la
+cuenta GitHub del propietario y no opera automáticamente su pipeline.
+
+AGENTE DEL PROPIETARIO
+Con gh autenticado y permisos sobre Deployments del repositorio:
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-Lab.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-PublicApi.ps1
-Start-Lab.ps1 detecta Python, actualiza/verifica la URL y mantiene el agente.
-El agente requiere gh autenticado con permisos sobre el repositorio. Una copia
-descargada puede ejecutar la aplicación sin operar el pipeline de otra cuenta.
-No se incluye la identidad de despliegue del propietario en ningún archivo público.
 
-DURACIÓN Y RENOVACIÓN DE LA PUBLICACIÓN
-Cada URL Pinggy gratuita dura hasta 60 minutos por sesión; no es alojamiento
-continuo ni tiene garantía de disponibilidad. Para renovar producción:
-py -3 scripts/public_tunnel.py production --renew
-El comando comprueba la API, actualiza .local/public_urls.json y Postman.
-El pod puede reiniciarse y obtener otra URL; repite Start-Lab.ps1 o
-public_tunnel.py para consultar y guardar la actual. El agente también la
-actualiza antes de cada despliegue. Comparte siempre la URL nueva al evaluador.
-No sustituyas esta entrada por Cloudflare si necesitas probar TRACE literal.
-https://pinggy.io/docs/
+Para mantener el acceso local a los tres entornos en Windows:
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-AllEnvironments.ps1
 
-ENTORNOS
-production: namespace devops-production, HTTPS local 9443, NodePort 30443.
-staging: namespace devops-staging, NodePort 30444 y URL pública propia.
-development: namespace devops-development, NodePort 30445 y URL pública propia.
-Cada namespace tiene Redis, volumen y secretos de firma propios; la API Key
-fija se comparte porque así lo exige el ejercicio. Producción usa .env y los
-otros entornos usan .local/environments/<entorno>.env.
-Start-AllEnvironments.ps1 reanuda los tres entornos ya preparados, con acceso
-local a staging/development mediante port-forward TLS en 9444/9445.
-lab.py --all-environments no inicia esos supervisores; usa sus URLs públicas
-o ejecuta Start-AllEnvironments.ps1 en el equipo propietario.
+Los accesos son production 9443, staging 9444 y development 9445.
+Start-AllEnvironments inicia supervisores de port-forward para staging y
+development. En Linux/macOS se puede mantener abierto un port-forward:
+kubectl --kubeconfig .local/kubeconfig -n devops-staging port-forward service/kong 9444:443 --address=127.0.0.1
 
-Verificar un entorno publicado:
-py -3 scripts/test_environment.py production
-Agregar --local comprueba el acceso HTTPS local; staging/development requieren
-los port-forward anteriores activos. Postman: ver postman/README.md.
+La verificación conjunta abre y cierra sus propios puertos:
+py -3 scripts/verify_environments.py
+
+Publicar una copia del repositorio no concede acceso al cluster del propietario.
+Para operar un fork es necesario configurar su identidad y el nombre del
+repositorio/propietario en local_deploy_agent.py, con permisos apropiados.
 
 VERSIONES Y EJECUCIÓN BAJO DEMANDA
-Push a master: production; push a develop: development; etiqueta v*: staging.
-La imagen se aplica por digest inmutable, sin depender de una etiqueta latest.
-GitHub -> Actions -> Integración y despliegue DevOps -> Run workflow.
-Seleccionar una etiqueta publicada, un entorno y version vX.Y.Z.
-Desde CLI, ejemplo de versión publicada hacia staging:
-gh workflow run ci-cd.yml --ref v1.0.0 -f environment=staging -f version=v1.0.0
-Si se selecciona master, el destino es production aunque se pida otro entorno:
-gh workflow run ci-cd.yml --ref master -f environment=staging -f version=v1.0.0
-Esta regla mantiene la exigencia del enunciado para master.
-No editar ni mover etiquetas existentes. Una modificación crea otra versión.
-Consultar evidencias y enlaces reales en evidence/cierre-entornos.json.
+Push a master -> production. Push a develop -> development.
+Etiqueta vX.Y.Z -> staging. Pull request -> compilación y pruebas, sin desplegar.
+Actions -> Integración y despliegue DevOps -> Run workflow permite elegir
+entorno y una etiqueta existente. La imagen se aplica por digest inmutable.
 
-DIAGNÓSTICO
-400 con aviso de HTTPS: se utilizó http:// en un puerto que espera https://.
-405 al abrir /DevOps: el navegador envía GET, pero el contrato exige POST.
-401/403: comprobar credenciales y vigencia. 409: emitir un JWT nuevo.
-502/503: revisar túnel, Kong, API y Redis.
-Archivo .ps1 inexistente: usar una ruta absoluta o la raíz del repositorio.
+Ejemplo para una versión publicada:
+gh workflow run ci-cd.yml --ref v1.0.2 -f environment=staging -f version=v1.0.2
 
-Kong utiliza dos procesos para ajustarse al límite de memoria. La distribución
-considera taints y revisiones para permitir escalado y mantener réplicas en
-ambos trabajadores. La prueba de HPA usa carga sintética de CPU y no mide
-la capacidad máxima de tráfico HTTP.
+Al seleccionar master el destino siempre es production, aunque se solicite
+otro entorno. Producción solo acepta una versión perteneciente a master.
+Para revertir, selecciona una etiqueta anterior compatible; esto no revierte
+datos ni secretos. Las modificaciones nuevas deben crear otra etiqueta.
 
-REGISTROS
-.local/agent.log y .local/agent-error.log: despliegue local.
-kubectl -n devops-production logs deployment/public-tunnel: conexión pública. GitHub Actions: etapas y artefactos.
+NUBE
+scripts/deploy_cluster.py despliega en un cluster existente usando un contexto
+explícito. NUBE.md documenta EKS/AKS, perfiles, almacenamiento, TLS y permisos.
+La aplicación es portable; el repositorio no crea una cuenta ni un cluster cloud.
+La identidad y la conexión automática del pipeline a esa cuenta son configuración
+del destino y no se han validado en AWS/Azure en este laboratorio.
 
-La documentación, comentarios, etapas y mensajes propios están en español.
-La interfaz de GitHub y los registros de dependencias pueden estar en inglés.
-Los identificadores técnicos y los textos exigidos por el contrato se conservan.
+PUBLICACIÓN OPCIONAL
+Solo si se necesita una demostración desde Internet:
+py -3 scripts/demo.py --public
+py -3 scripts/public_tunnel.py production --renew
+
+También se puede usar Start-Lab.ps1 -Public. Pinggy gratuito utiliza sesiones
+de hasta 60 minutos y la URL cambia al renovar. El túnel no interviene en
+la aprobación del pipeline. La prueba pública adicional es:
+py -3 scripts/test_environment.py production
+
+TRACE devuelve 405 ERROR. HEAD devuelve 405 sin cuerpo por el protocolo HTTP.
+Una URL antigua de Cloudflare puede interceptar TRACE antes de llegar a Kong.
+
+REGISTROS Y DIAGNÓSTICO
+.local/agent.log y .local/agent-error.log: agente.
+.local/releases/<commit>/verificacion-<entorno>.json: comprobación del despliegue.
+GitHub Actions: etapas, artefactos, pruebas y cobertura.
+400 al usar http:// en un puerto HTTPS: cambia a https://.
+405 en navegador: envía GET; la petición válida requiere POST.
+401/403: revisa credenciales. 409: genera un JWT nuevo.
+Ruta scripts/demo.py inexistente: entra en la carpeta del repositorio.
+HPA sin métricas: revisa Metrics Server y los recursos solicitados por los pods.

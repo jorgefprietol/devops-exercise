@@ -9,6 +9,8 @@ import subprocess
 import sys
 import time
 import urllib.request
+from cluster_check import verify_cluster
+from environment_config import credentials
 
 ROOT = Path(__file__).resolve().parents[1]
 PRIVATE = ROOT / '.local'
@@ -45,7 +47,7 @@ def main():
     if not shutil.which('docker'):
         raise RuntimeError('Instala e inicia Docker Desktop con contenedores Linux antes de continuar.')
     PRIVATE.mkdir(exist_ok=True)
-    env = {**os.environ, 'PYTHONUTF8': '1', 'KUBECONFIG': str(PRIVATE / 'kubeconfig')}
+    env = {**os.environ, 'PYTHONUTF8': '1', 'KUBECONFIG': str(PRIVATE / 'kubeconfig'), 'KUBECTL_CONTEXT': 'kind-devops-lab'}
     env['PATH'] = str(PRIVATE / 'bin') + os.pathsep + env['PATH']
 
     def run(command, **kwargs):
@@ -84,6 +86,7 @@ def main():
     targets = ['production', 'staging', 'development'] if args.all_environments else ['production']
     for target in targets:
         run([sys.executable, 'scripts/prepare_environment.py', target, '--image', args.image])
+        verify_cluster(ROOT, {**env, **credentials(ROOT, target)}, 'devops-' + target)
         if target == 'production':
             run([sys.executable, 'scripts/test_environment.py', target, '--local'])
         if args.public:

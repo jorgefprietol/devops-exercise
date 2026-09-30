@@ -1,55 +1,49 @@
 ENTREGA DEL EJERCICIO DEVOPS
 Jorge Fidel Prieto Linares
 
-Repositorio público:
-https://github.com/jorgefprietol/devops-exercise
-Integración y despliegue:
-https://github.com/jorgefprietol/devops-exercise/actions
+Repositorio: https://github.com/jorgefprietol/devops-exercise
+Pipeline: https://github.com/jorgefprietol/devops-exercise/actions
 
-CONTENIDO
-API y emisor de JWT; pruebas de contrato y seguridad; Dockerfile; Kong;
-Redis; dos instancias locales; infraestructura Kubernetes y escalado HPA;
-integración y despliegue automatizados; instrucciones de validación y operación.
-
-COMPROBACIÓN
-1. Abrir la ejecución más reciente finalizada correctamente en Actions.
-2. Revisar Compilación, Pruebas, Imagen Docker y Despliegue Kubernetes.
-3. Descargar pruebas-y-cobertura.
-4. Consultar el enlace público en el resumen del despliegue.
-5. Ejecutar POST /DevOps con la API Key del ejercicio y un JWT vigente.
-
-La URL pública es temporal. Para coordinar su comprobación se proporciona un
-JWT recién emitido, válido como máximo cinco minutos y para un solo uso.
-El secreto de firma no se publica. El ejercicio también puede reproducirse
-localmente con las instrucciones del README y credenciales propias.
-
-PRUEBA LOCAL RÁPIDA
-Con Docker y Python instalados, desde la carpeta del proyecto:
+EJECUTAR Y EVALUAR LOCALMENTE
+Con Docker Linux iniciado y Python 3.10 o posterior, desde el repositorio:
 py -3 scripts/demo.py
-En Linux/macOS: python3 scripts/demo.py
-La respuesta y las comprobaciones se muestran en la consola.
 
-RESULTADOS
-43 pruebas .NET y 6 comprobaciones Python correctas y cobertura de líneas de 85,93 %.
-Integración HTTPS con autenticación y rechazo de repeticiones concurrentes.
-Un nodo de control y dos trabajadores; escalado de 2 a 6 réplicas disponibles.
-Políticas de red que restringen el acceso directo a API y Redis.
+Para verificar también Kubernetes con dos trabajadores, tres entornos y HPA:
+py -3 scripts/lab.py --all-environments
+py -3 scripts/verify_environments.py
 
-ALCANCE
-Kubernetes local y túnel HTTPS. Los nodos comparten un PC; la disponibilidad
-depende del equipo, Docker y el túnel. Redis tiene una réplica persistente.
-Se implementa el contrato de respuesta sin una cola de envío real.
+En Linux/macOS: python3 en lugar de py -3. La primera descarga requiere
+Internet. No se necesita una URL pública ni depender del equipo del autor.
+Postman: importar la colección y el entorno privado que genera el arranque;
+seleccionarlo como activo. Instrucciones completas en postman/README.md.
 
-ENTORNOS Y VERSIONES
-production, staging y development comprobados mediante HTTPS local y público.
-Cada entorno tiene sus secretos de firma y Redis; seis cruces de JWT se rechazan.
-Ejecuciones automáticas por rama y etiqueta, más una ejecución manual v1.0.0:
-evidence/ejecuciones-cierre.json. Detalle funcional: evidence/cierre-entornos.json.
+CONTENIDO Y COMPROBACIONES
+- API .NET, Kong, Redis, Docker y manifiestos Kubernetes versionados.
+- Compilación, pruebas, imagen por digest y despliegue en GitHub Actions.
+- master -> production; develop -> development; etiquetas -> staging.
+- Ejecución manual y selección de una versión publicada.
+- 43 pruebas .NET; 16 pruebas Python; umbral de cobertura de líneas del 80 %.
+- Análisis estático, formato y auditoría de dependencias bloqueadas.
+- Dos trabajadores con réplicas distribuidas; HPA de 2 a 6 pods de la API.
+- JWT único por transacción y rechazo de repeticiones entre réplicas.
+- Evidencia de ciclos TDD concretos en evidence/tdd-seguridad.json y
+  evidence/tdd-portabilidad.json; no se afirma TDD retrospectivo de todo el código.
 
-EXCEPCIONES DEL CONTRATO HTTP
-HEAD: 405 sin cuerpo, como exige HTTP. TRACE: 405 y cuerpo literal ERROR,
-normalizado por Kong y conservado por la entrada pública Pinggy. GET, PUT,
-PATCH, DELETE y OPTIONS también devuelven 405 con cuerpo ERROR.
-Inicio con publicación: py -3 scripts/demo.py --public.
-Kubernetes completo: py -3 scripts/lab.py --public.
-La URL pública gratuita dura hasta 60 minutos por sesión; debe renovarse.
+La matriz REQUISITOS.csv indica implementación, comprobación y alcance.
+Los informes de pruebas y cobertura se descargan desde GitHub Actions.
+El despliegue se comprueba mediante una conexión local autenticada a Kubernetes,
+sin túnel público. El pipeline del propietario requiere su agente encendido.
+
+PORTABILIDAD Y LÍMITES
+Docker funciona en equipos compatibles con contenedores Linux. NUBE.md y
+scripts/deploy_cluster.py permiten preparar la aplicación para un cluster
+existente, con perfiles EKS/AKS. No se han creado ni probado recursos cloud.
+Los nodos kind comparten un PC; Redis tiene una sola réplica persistente.
+production es el entorno lógico de la evaluación, no un servicio con SLA.
+La API implementa la respuesta solicitada; no hay una cola de entrega real.
+
+HTTP
+GET, PUT, PATCH, DELETE, OPTIONS y TRACE: 405 y cuerpo ERROR.
+HEAD: 405 sin cuerpo, conforme al protocolo HTTP.
+Para una demostración pública opcional existe --public; no es necesario para
+la evaluación local. Las URLs Pinggy gratuitas duran hasta 60 minutos.

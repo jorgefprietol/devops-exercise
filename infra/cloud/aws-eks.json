@@ -1,0 +1,5 @@
+{
+  "STORAGE_CLASS": "gp3",
+  "LOAD_BALANCER_CLASS": "service.k8s.aws/nlb",
+  "LOAD_BALANCER_ANNOTATIONS": "{\"service.beta.kubernetes.io/aws-load-balancer-scheme\":\"internet-facing\",\"service.beta.kubernetes.io/aws-load-balancer-nlb-target-type\":\"ip\"}"
+}

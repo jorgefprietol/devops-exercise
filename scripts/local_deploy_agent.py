@@ -1,6 +1,6 @@
 """Procesa solicitudes verificadas del repositorio y conserva el acceso local al cluster.
 
-Se inicia después de kind y del túnel HTTPS. Consulta GitHub mediante conexiones
+Se inicia después de kind. Consulta GitHub mediante conexiones
 salientes y excluye las ejecuciones originadas por solicitudes de cambios.
 """
 from pathlib import Path
@@ -15,6 +15,7 @@ import sys
 import time
 import zipfile
 from environment_config import credentials
+from cluster_check import verify_cluster
 
 ROOT = Path(__file__).resolve().parents[1]
 PRIVATE = ROOT / '.local'
@@ -28,8 +29,8 @@ def gh(path, body=None):
         capture_output=True, text=True, check=True, encoding='utf-8')
     return json.loads(result.stdout) if result.stdout.strip() else None
 
-def status(ident, state, url, description):
-    gh(f'deployments/{ident}/statuses', {'state': state, 'environment_url': url,
+def status(ident, state, description):
+    gh(f'deployments/{ident}/statuses', {'state': state,
         'description': description[:140], 'auto_inactive': False})
 
 def validate(deployment):
@@ -40,6 +41,7 @@ def validate(deployment):
     image = payload.get('image', '')
     if not re.fullmatch(re.escape('ghcr.io/' + REPO) + r'@sha256:[a-f0-9]{64}', image): return False
     run = gh('actions/runs/' + str(int(payload['run_id'])))
+    if run['status'] == 'completed' and run['conclusion'] != 'success': return False
     if run['event'] not in ('push', 'workflow_dispatch'): return False
     if run['actor']['login'] != OWNER or run['path'] != '.github/workflows/ci-cd.yml': return False
     if run['head_repository']['full_name'] != REPO: return False
@@ -56,7 +58,7 @@ def validate(deployment):
         if subprocess.run(['git', 'cat-file', '-e', sha + '^{commit}'], cwd=ROOT).returncode: return False
     return True
 
-def deploy(deployment, public_url):
+def deploy(deployment):
     sha = deployment['sha']
     output = PRIVATE / 'releases' / sha
     output.mkdir(parents=True, exist_ok=True)
@@ -68,21 +70,15 @@ def deploy(deployment, public_url):
         package.extractall(output)
     env = os.environ.copy()
     env.update(credentials(ROOT, deployment['environment']))
-    env.update(KUBECONFIG=str(PRIVATE / 'kubeconfig'), LAB_MODE='kind',
+    env.update(KUBECONFIG=str(PRIVATE / 'kubeconfig'), KUBECTL_CONTEXT='kind-devops-lab', LAB_MODE='kind',
                DEPLOY_ENV=deployment['environment'], IMAGE=deployment['payload']['image'])
     for key, file in [('TLS_CRT_B64', 'tls.crt'), ('TLS_KEY_B64', 'tls.key')]:
         env[key] = base64.b64encode((PRIVATE / file).read_bytes()).decode()
     subprocess.run([sys.executable, 'scripts/deploy.py'], cwd=output, env=env, check=True)
     for resource in ['statefulset/redis', 'deployment/devops-api', 'deployment/kong']:
         subprocess.run(['kubectl', '-n', 'devops-' + env['DEPLOY_ENV'], 'rollout', 'status', resource, '--timeout=300s'], env=env, check=True)
-    # El supervisor puede estar reconectando tras el rollout de Kong.
-    for attempt in range(6):
-        result = subprocess.run([sys.executable, 'scripts/smoke.py', public_url], cwd=output, env=env)
-        if result.returncode == 0:
-            break
-        if attempt == 5:
-            raise RuntimeError('La prueba pública no superó las comprobaciones')
-        time.sleep(5)
+    report = verify_cluster(ROOT, env, 'devops-' + env['DEPLOY_ENV'])
+    (output / ('verificacion-' + env['DEPLOY_ENV'] + '.json')).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
 
 def main():
     parser = argparse.ArgumentParser()
@@ -102,23 +98,13 @@ def main():
                     processed.add(ident)
                     continue
                 if not validate(item): continue
-                # El proveedor gratuito puede renovar la URL al reiniciar el pod.
-                # Se obtiene y verifica la entrada actual antes de registrar el despliegue.
-                subprocess.run([sys.executable, str(ROOT / 'scripts/public_tunnel.py'),
-                                item['environment']], cwd=ROOT, check=True, timeout=240)
-                urls = json.loads((PRIVATE / 'public_urls.json').read_text())
-                url = urls.get(item['environment'])
-                if not url:
-                    status(ident, 'failure', '', 'Inicia primero el túnel HTTPS del entorno seleccionado.')
-                    processed.add(ident)
-                    continue
-                status(ident, 'in_progress', url, 'Aplicando la imagen verificada en Kubernetes local.')
+                status(ident, 'in_progress', 'Aplicando la imagen verificada en Kubernetes local.')
                 try:
-                    deploy(item, url)
-                    status(ident, 'success', url, 'Despliegue y pruebas HTTPS públicas completados correctamente.')
-                    print(f'Despliegue {ident}: CORRECTO {url}', flush=True)
+                    deploy(item)
+                    status(ident, 'success', 'Despliegue, dos nodos, HPA y pruebas HTTPS locales correctos; no requiere túnel público.')
+                    print(f'Despliegue {ident}: CORRECTO en {item["environment"]}, sin túnel público.', flush=True)
                 except Exception as error:
-                    status(ident, 'failure', url, 'Falló el despliegue local; revisa el registro del agente.')
+                    status(ident, 'failure', 'Falló el despliegue local; revisa el registro del agente.')
                     print(f'Despliegue {ident}: ERROR {type(error).__name__}', flush=True)
                 processed.add(ident)
                 state_file.write_text(json.dumps(sorted(processed)))

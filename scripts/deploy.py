@@ -105,14 +105,30 @@ def resources(env, image):
             'policyTypes': ['Ingress'], 'ingress': [{'from': [{'podSelector': {'matchLabels': {'app':'devops-api'}}}],
                 'ports': [{'protocol':'TCP','port':6379}]}]}, api='networking.k8s.io/v1')
     ]
+    storage_class = os.environ.get('STORAGE_CLASS', '').strip()
+    if storage_class:
+        redis = next(item for item in result if item['kind'] == 'StatefulSet')
+        redis['spec']['volumeClaimTemplates'][0]['spec']['storageClassName'] = storage_class
     if os.environ.get('LAB_MODE') == 'kind':
         for item in result:
             if item['kind'] == 'Service' and item['metadata']['name'] == 'kong':
                 item['spec']['type'] = 'NodePort'
                 item['spec']['ports'][0]['nodePort'] = {'production': 30443, 'staging': 30444, 'development': 30445}[env]
+    else:
+        annotations = json.loads(os.environ.get('LOAD_BALANCER_ANNOTATIONS', '{}'))
+        if not isinstance(annotations, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in annotations.items()):
+            raise ValueError('LOAD_BALANCER_ANNOTATIONS debe ser un objeto JSON de textos')
+        service = next(item for item in result if item['kind'] == 'Service' and item['metadata']['name'] == 'kong')
+        if annotations:
+            service['metadata']['annotations'] = annotations
+        if os.environ.get('LOAD_BALANCER_CLASS'):
+            service['spec']['loadBalancerClass'] = os.environ['LOAD_BALANCER_CLASS']
     return result
 
 
 if __name__ == '__main__':
     items = resources(os.environ['DEPLOY_ENV'], os.environ['IMAGE'])
-    subprocess.run(['kubectl', 'apply', '-f', '-'], input=json.dumps({'apiVersion':'v1','kind':'List','items':items}), text=True, check=True)
+    command = ['kubectl']
+    if os.environ.get('KUBECTL_CONTEXT'):
+        command += ['--context', os.environ['KUBECTL_CONTEXT']]
+    subprocess.run(command + ['apply', '-f', '-'], input=json.dumps({'apiVersion':'v1','kind':'List','items':items}), text=True, check=True)

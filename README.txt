@@ -139,7 +139,7 @@ Ejecución manual: selección de entorno y, opcionalmente, etiqueta vX.Y.Z.
 Si la rama seleccionada es master, el destino siempre es production.
 Los tres entornos usan namespaces, Redis y secretos de firma independientes.
 Inicio conjunto: powershell -File scripts/Start-AllEnvironments.ps1
-Prueba por entorno: py -3 scripts/test_environment.py staging
+Prueba conjunta sin túnel: py -3 scripts/verify_environments.py
 Preparación y versiones: PUBLICACION.txt. Evidencias: evidence/cierre-entornos.json.
 
 INFRAESTRUCTURA Y LÍMITES
@@ -149,7 +149,7 @@ red y Metrics Server entrega las métricas al HPA. La API escala de 2 a 6 répli
 Kong mantiene 2 réplicas. La distribución respeta taints y revisiones de despliegue.
 Redis tiene una réplica persistente y no ofrece alta disponibilidad.
 
-El túnel HTTPS tiene una dirección temporal. El PC, Docker y el túnel deben
+El túnel HTTPS tiene una dirección temporal. Solo para el acceso público, el PC, Docker y el túnel deben
 permanecer activos. La operación continua requiere infraestructura remota,
 dominio estable y una estrategia de disponibilidad para Redis.
 .NET 8 termina su soporte el 10 de noviembre de 2026; una evolución productiva
@@ -194,3 +194,9 @@ py -3 scripts/public_tunnel.py production --renew
 Actualiza la URL y Postman; requiere compartir la URL nueva. No es alojamiento
 24/7 ni una dirección permanente. El túnel termina TLS y transporta el tráfico
 al origen mediante SSH. El puerto HTTP interno de Kong no se publica al host.
+
+KUBERNETES Y PORTABILIDAD
+py -3 scripts/lab.py --all-environments
+py -3 scripts/verify_environments.py
+El pipeline verifica el cluster sin una URL pública. NUBE.md explica el
+despliegue en clusters existentes con perfiles EKS/AKS y sus requisitos.
