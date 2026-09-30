@@ -98,6 +98,11 @@ def resources(env, image):
             'policyTypes': ['Ingress'], 'ingress': [{'from': [{'podSelector': {'matchLabels': {'app':'devops-api'}}}],
                 'ports': [{'protocol':'TCP','port':6379}]}]}, api='networking.k8s.io/v1')
     ]
+    if os.environ.get('LAB_MODE') == 'kind':
+        for item in result:
+            if item['kind'] == 'Service' and item['metadata']['name'] == 'kong':
+                item['spec']['type'] = 'NodePort'
+                item['spec']['ports'][0]['nodePort'] = {'production': 30443, 'staging': 30444, 'development': 30445}[env]
     return result
 
 
