@@ -85,6 +85,7 @@ def resources(env, image):
                   'env': [envvar(k, v) for k, v in {
                       'KONG_DATABASE':'off', 'KONG_ADMIN_LISTEN':'off', 'KONG_PROXY_LISTEN':'0.0.0.0:8443 ssl',
                       'KONG_STATUS_LISTEN':'0.0.0.0:8100', 'KONG_DECLARATIVE_CONFIG':'/kong/kong.json',
+                      'KONG_NGINX_WORKER_PROCESSES':'2',
                       'KONG_SSL_CERT':'/tls/tls.crt', 'KONG_SSL_CERT_KEY':'/tls/tls.key'}.items()],
                   'ports': [{'containerPort': 8443}], 'readinessProbe': probe('/status/ready', 8100),
                   'volumeMounts': [{'name':'config','mountPath':'/kong','readOnly':True}, {'name':'tls','mountPath':'/tls','readOnly':True}]}],
