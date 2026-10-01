@@ -65,6 +65,19 @@ Configura las variables del repositorio con las salidas verificadas de la pila:
 
 GitHub obtiene credenciales AWS de una hora mediante OIDC. El rol solo puede ejecutar el documento de despliegue en el servidor de esta pila y consultar el resultado. No se almacenan claves AWS permanentes. Master sigue desplegando production; develop, development; y las etiquetas, staging. El flujo conserva Build, Test, publicación inmutable y despliegue verificado. Para volver al laboratorio local cambia `DEPLOY_TARGET` a `local` y activa su agente.
 
+En una ejecución manual selecciona el workflow de master y escribe la etiqueta en `version`. La imagen se construye desde esa etiqueta; las herramientas de despliegue se toman del commit del workflow. Esto permite desplegar versiones de la API anteriores a la incorporación del instalador AWS. Production solo admite revisiones de la aplicación pertenecientes a la historia de master.
+
+Para inicializar y operar desde CloudShell también puedes usar:
+
+```sh
+python3 scripts/aws_control.py status
+python3 scripts/aws_control.py initialize --accept-certificate-terms
+python3 scripts/aws_control.py deploy --environment production --revision SHA_COMPLETO_INFRAESTRUCTURA --image ghcr.io/jorgefprietol/devops-exercise@sha256:DIGEST
+python3 scripts/aws_control.py token --revision SHA_COMPLETO_INFRAESTRUCTURA
+```
+
+`initialize` espera al instalador y solicita el certificado. `token` emite un JWT individual con vigencia de cinco minutos. `destroy` solicita la eliminación completa de esta pila; úsalo para terminar la evaluación antes del plazo y comprueba luego el estado en CloudFormation.
+
 ## Entregar un JWT
 
 Desde la revisión desplegada, genera el JWT en el servidor con `sudo python3 scripts/issue_jwt.py --secrets-file /opt/devops/private/production.env`. No entregues el secreto de firma. Cada envío válido requiere un JWT nuevo; repetir uno aceptado devuelve 409. Las credenciales locales y las de AWS son diferentes. Para Postman usa un entorno privado de AWS; cambiar solo `base_url` conservando el secreto local provoca 401. El JWT entregado caduca en cinco minutos; emite uno justo antes de la prueba del evaluador.

@@ -167,7 +167,7 @@ jobs:
       - name: Obtener código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.build.outputs.sha }}
+          ref: ${{ github.sha }}
       - name: Solicitar despliegue y comprobar Kubernetes sin túnel público
         if: vars.DEPLOY_TARGET != 'aws'
         env:
@@ -185,5 +185,6 @@ jobs:
           AWS_DEPLOY_DOCUMENT: ${{ vars.AWS_DEPLOY_DOCUMENT }}
           DEPLOY_ENV: ${{ needs.build.outputs.target }}
           DEPLOY_SHA: ${{ needs.build.outputs.sha }}
+          DEPLOY_TOOLS_SHA: ${{ github.sha }}
           IMAGE: ${{ needs.package.outputs.image }}
         run: python3 scripts/aws_pipeline.py

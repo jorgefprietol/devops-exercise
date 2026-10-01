@@ -30,7 +30,12 @@ def main():
             print('::add-mask::' + value, flush=True)
     os.environ.update(AWS_ACCESS_KEY_ID=result['AccessKeyId'], AWS_SECRET_ACCESS_KEY=result['SecretAccessKey'],
                       AWS_SESSION_TOKEN=result['SessionToken'])
-    parameters = {'Revision': [os.environ['DEPLOY_SHA']], 'Image': [os.environ['IMAGE']], 'Environment': [os.environ['DEPLOY_ENV']]}
+    # La imagen corresponde a la versión elegida. El despliegue utiliza las
+    # herramientas del workflow, incluso si esa versión antecede al soporte AWS.
+    tools_revision = os.environ.get('DEPLOY_TOOLS_SHA', os.environ['DEPLOY_SHA'])
+    parameters = {'Revision': [tools_revision], 'Image': [os.environ['IMAGE']], 'Environment': [os.environ['DEPLOY_ENV']]}
+    print('Revision de la aplicacion: ' + os.environ['DEPLOY_SHA'], flush=True)
+    print('Revision de infraestructura: ' + tools_revision, flush=True)
     instance = os.environ['AWS_DEPLOY_INSTANCE']
     command = aws('ssm', 'send-command', '--instance-ids', instance, '--document-name', os.environ['AWS_DEPLOY_DOCUMENT'],
         '--parameters', json.dumps(parameters), '--timeout-seconds', '1200')['Command']['CommandId']
@@ -45,6 +50,10 @@ def main():
         print(result.get('StandardErrorContent', ''))
         if status != 'Success':
             raise RuntimeError('SSM no completo el despliegue: ' + status)
+        with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+            summary.write('### Despliegue AWS verificado\n\nEntorno: `' + os.environ['DEPLOY_ENV'] +
+                '`\n\nImagen: `' + os.environ['IMAGE'] + '`\n\nDos nodos, réplicas distribuidas, HPA con métricas y pruebas de API Key/JWT. '
+                'Production también comprueba HTTPS público con validación del certificado.\n')
         return
     raise TimeoutError('El despliegue AWS excedio el tiempo permitido')
 
