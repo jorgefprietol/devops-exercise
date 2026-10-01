@@ -484,7 +484,6 @@
           "Mode": "OFF"
         },
         "State": "ENABLED",
-        "ActionAfterCompletion": "DELETE",
         "Target": {
           "Arn": "arn:aws:scheduler:::aws-sdk:ec2:terminateInstances",
           "RoleArn": {

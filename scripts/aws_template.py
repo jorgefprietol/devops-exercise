@@ -58,7 +58,7 @@ def template():
     add('ExpiryRole', 'IAM::Role', AssumeRolePolicyDocument=trust('scheduler.amazonaws.com'),
         Policies=[{'PolicyName': 'EliminarDosNodos', 'PolicyDocument': document([policy('ec2:TerminateInstances', instance_arns)])}])
     add('Expiry', 'Scheduler::Schedule', ScheduleExpression=sub('at(${ExpiresUtc})'), ScheduleExpressionTimezone='UTC',
-        FlexibleTimeWindow={'Mode': 'OFF'}, State='ENABLED', ActionAfterCompletion='DELETE',
+        FlexibleTimeWindow={'Mode': 'OFF'}, State='ENABLED',
         Target={'Arn': 'arn:aws:scheduler:::aws-sdk:ec2:terminateInstances', 'RoleArn': attr('ExpiryRole', 'Arn'),
                 'Input': sub('{"InstanceIds":["${Server}","${Worker}"]}'),
                 'RetryPolicy': {'MaximumEventAgeInSeconds': 3600, 'MaximumRetryAttempts': 10}})
