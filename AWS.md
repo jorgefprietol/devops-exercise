@@ -67,7 +67,7 @@ GitHub obtiene credenciales AWS de una hora mediante OIDC. El rol solo puede eje
 
 ## Entregar un JWT
 
-Genera el JWT en el servidor con `scripts/issue_jwt.py --help` y el archivo privado del entorno siguiendo `HOST_JWT.md`. No entregues el secreto de firma. Cada envío válido requiere un JWT nuevo; repetir uno aceptado devuelve 409. Las credenciales locales y las de AWS son diferentes. Para Postman usa un entorno privado de AWS; cambiar solo `base_url` conservando el secreto local provoca 401.
+Desde la revisión desplegada, genera el JWT en el servidor con `sudo python3 scripts/issue_jwt.py --secrets-file /opt/devops/private/production.env`. No entregues el secreto de firma. Cada envío válido requiere un JWT nuevo; repetir uno aceptado devuelve 409. Las credenciales locales y las de AWS son diferentes. Para Postman usa un entorno privado de AWS; cambiar solo `base_url` conservando el secreto local provoca 401. El JWT entregado caduca en cinco minutos; emite uno justo antes de la prueba del evaluador.
 
 ## Límites y seguridad
 

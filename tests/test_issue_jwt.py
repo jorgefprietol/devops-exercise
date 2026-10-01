@@ -47,6 +47,17 @@ class IssueJwtTests(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 issue(root, 'staging')
 
+    def test_archivo_cloud_explicito_no_usa_la_firma_local(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cloud = root / 'cloud.env'
+            cloud.write_text('JWT_SECRET=' + 'c' * 32 + '\n')
+            encoded = issue(root, 'production', cloud)
+            header, body, signature = encoded.split('.')
+            expected = hmac.new(('c' * 32).encode(), (header + '.' + body).encode(), hashlib.sha256).digest()
+            self.assertEqual(expected, base64.urlsafe_b64decode(signature + '=='))
+            self.assertFalse((root / '.env').exists())
+
 
 if __name__ == '__main__':
     unittest.main()
