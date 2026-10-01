@@ -159,6 +159,7 @@ jobs:
     permissions:
       contents: read
       deployments: write
+      id-token: write
     concurrency:
       group: deploy-${{ needs.build.outputs.target }}
       cancel-in-progress: false
@@ -168,9 +169,21 @@ jobs:
         with:
           ref: ${{ needs.build.outputs.sha }}
       - name: Solicitar despliegue y comprobar Kubernetes sin túnel público
+        if: vars.DEPLOY_TARGET != 'aws'
         env:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_ENV: ${{ needs.build.outputs.target }}
           DEPLOY_SHA: ${{ needs.build.outputs.sha }}
           IMAGE: ${{ needs.package.outputs.image }}
         run: python3 scripts/request_deployment.py
+      - name: Desplegar en AWS con identidad temporal y verificar Kubernetes
+        if: vars.DEPLOY_TARGET == 'aws'
+        env:
+          AWS_DEFAULT_REGION: us-east-2
+          AWS_DEPLOY_ROLE: ${{ vars.AWS_DEPLOY_ROLE }}
+          AWS_DEPLOY_INSTANCE: ${{ vars.AWS_DEPLOY_INSTANCE }}
+          AWS_DEPLOY_DOCUMENT: ${{ vars.AWS_DEPLOY_DOCUMENT }}
+          DEPLOY_ENV: ${{ needs.build.outputs.target }}
+          DEPLOY_SHA: ${{ needs.build.outputs.sha }}
+          IMAGE: ${{ needs.package.outputs.image }}
+        run: python3 scripts/aws_pipeline.py

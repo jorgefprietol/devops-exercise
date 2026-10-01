@@ -109,6 +109,11 @@ def resources(env, image):
     if storage_class:
         redis = next(item for item in result if item['kind'] == 'StatefulSet')
         redis['spec']['volumeClaimTemplates'][0]['spec']['storageClassName'] = storage_class
+    service_type = os.environ.get('GATEWAY_SERVICE_TYPE', 'LoadBalancer')
+    if service_type not in ('LoadBalancer', 'ClusterIP'):
+        raise ValueError('GATEWAY_SERVICE_TYPE debe ser LoadBalancer o ClusterIP')
+    service = next(item for item in result if item['kind'] == 'Service' and item['metadata']['name'] == 'kong')
+    service['spec']['type'] = service_type
     if os.environ.get('LAB_MODE') == 'kind':
         for item in result:
             if item['kind'] == 'Service' and item['metadata']['name'] == 'kong':
