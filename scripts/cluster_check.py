@@ -110,6 +110,10 @@ def verify_cluster(root, env, namespace):
         wait_gateway(env, url)
         subprocess.run([sys.executable, str(Path(root) / 'scripts/smoke.py'), url, '--local'],
                        cwd=root, env=env, check=True, timeout=120)
+        if env.get('ISSUER_KEY'):
+            subprocess.run([sys.executable, str(Path(root) / 'scripts/check_issuer.py'), url, '--local'],
+                           cwd=root, env=env, check=True, timeout=120)
+            report['emision_jwt'] = 'correcto'
     report['contrato_autenticacion_y_repeticiones'] = 'correcto'
     print(json.dumps(report, ensure_ascii=False), flush=True)
     return report

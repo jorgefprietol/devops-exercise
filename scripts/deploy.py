@@ -6,6 +6,7 @@ import base64
 import hashlib
 import json
 import os
+from pathlib import Path
 import re
 import subprocess
 from kong_config import config
@@ -110,6 +111,11 @@ def resources(env, image):
         if len(issuer_key.encode()) < 32 or issuer_key == signer:
             raise ValueError('ISSUER_KEY debe ser independiente y tener al menos 32 bytes')
         issuer_stamp = hashlib.sha256((issuer_key + signer).encode()).hexdigest()
+        # El emisor mantiene su versión aunque se despliegue una API anterior.
+        issuer_release = Path(__file__).resolve().parents[1] / 'infra/issuer-image.txt'
+        issuer_image = issuer_release.read_text().strip() if issuer_release.exists() else image
+        if not re.fullmatch(r'[a-z0-9./_-]+@sha256:[a-f0-9]{64}', issuer_image):
+            raise ValueError('La imagen del emisor debe usar un digest inmutable')
         result += [
             obj('Secret', 'issuer-secrets', stringData={'ISSUER_KEY': issuer_key, 'JWT_SECRET': signer}),
             obj('Service', 'token-issuer', {'selector': {'app': 'token-issuer'}, 'ports': [{'port': 8080}]}),
@@ -118,7 +124,7 @@ def resources(env, image):
                 'strategy': {'type': 'Recreate'},
                 'template': {'metadata': {'labels': {'app': 'token-issuer'}, 'annotations': {'config-hash': issuer_stamp}},
                     'spec': {'automountServiceAccountToken': False, 'containers': [{
-                        'name': 'issuer', 'image': image, 'securityContext': security,
+                        'name': 'issuer', 'image': issuer_image, 'securityContext': security,
                         'ports': [{'containerPort': 8080}], 'resources': limits('50m', '64Mi'),
                         'env': [envvar('SERVICE_ROLE', 'token-issuer')] + [
                             {'name': key, 'valueFrom': {'secretKeyRef': {'name': 'issuer-secrets', 'key': key}}}

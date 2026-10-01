@@ -55,6 +55,8 @@ class DeploymentPortabilityTests(unittest.TestCase):
             service = self.manifest('Service', 'token-issuer')
             self.assertNotIn('type', service['spec'])
             issuer = self.manifest('Deployment', 'token-issuer')['spec']['template']['spec']
+            self.assertEqual((Path(__file__).resolve().parents[1] / 'infra/issuer-image.txt').read_text().strip(),
+                             issuer['containers'][0]['image'])
             self.assertFalse(issuer['automountServiceAccountToken'])
             self.assertNotIn('REDIS_CONNECTION', {v['name'] for v in issuer['containers'][0]['env']})
             api = self.manifest('Deployment', 'devops-api')['spec']['template']['spec']

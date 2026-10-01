@@ -22,7 +22,7 @@ def main():
     for key, name in [('TLS_CRT_B64', 'tls.crt'), ('TLS_KEY_B64', 'tls.key')]:
         env[key] = base64.b64encode((ROOT / '.local' / name).read_bytes()).decode()
     subprocess.run([sys.executable, 'scripts/deploy.py'], cwd=ROOT, env=env, check=True)
-    for resource in ('statefulset/redis', 'deployment/devops-api', 'deployment/kong'):
+    for resource in ('statefulset/redis', 'deployment/devops-api', 'deployment/token-issuer', 'deployment/kong'):
         subprocess.run(['kubectl', '-n', 'devops-' + args.environment, 'rollout', 'status',
                         resource, '--timeout=300s'], env=env, check=True)
     print('Entorno preparado: ' + args.environment)

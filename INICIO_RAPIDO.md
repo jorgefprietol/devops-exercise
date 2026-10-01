@@ -16,13 +16,18 @@ py -3 scripts/demo.py
 
 En Linux o macOS, utiliza `python3 scripts/demo.py`. Si descargaste el ZIP, descomprímelo y abre una terminal dentro de la carpeta que contiene `README.txt` y `compose.yaml`.
 
-El script genera las credenciales privadas, construye la aplicación, inicia Kong, dos instancias de la API y Redis, y ejecuta las pruebas. La respuesta esperada es:
+El script genera las credenciales privadas, construye la aplicación, inicia Kong, dos instancias de la API, Redis y el emisor auxiliar de JWT, y ejecuta las pruebas. La respuesta esperada es:
 
 ```json
 {"message":"Hello Juan Perez your message will be sent"}
 ```
 
 El servicio está en `https://127.0.0.1:8443/DevOps`. Abrir esa dirección en un navegador envía GET: la prueba válida utiliza POST y la ejecuta el script con un JWT nuevo.
+
+También puedes obtener el JWT con `POST /auth/token`, mediante una clave privada
+de evaluación. Consulta [TOKEN.md](TOKEN.md) para cURL, PowerShell y la colección
+de Postman que obtiene y utiliza el JWT automáticamente. En AWS no necesitas
+CloudShell ni una cuenta del proveedor para utilizar estos dos endpoints.
 
 ## Repetir la prueba o detener la demostración
 

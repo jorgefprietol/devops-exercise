@@ -86,5 +86,12 @@ proceso, incluidos intentos inválidos; se reinicia al reiniciar el contenedor.
 Un exceso responde `429`: esperar un minuto. Esta protección es suficiente para
 la demostración, pero no sustituye un proveedor de identidad para producción.
 
+En Kubernetes, `infra/issuer-image.txt` fija el digest de la versión verificada
+del emisor, independiente de la versión de API seleccionada para desplegar.
+Esto permite probar versiones anteriores de la API sin perder la emisión de
+JWT. Al cambiar el código del emisor, publicar y verificar primero la nueva
+imagen y actualizar ese archivo. Docker Compose construye ambos servicios
+desde el código descargado.
+
 La emisión no amplía la duración ni el presupuesto del laboratorio AWS. Su
 disponibilidad termina cuando se apagan los recursos de evaluación.
