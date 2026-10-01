@@ -81,9 +81,9 @@ def template():
         'Principal': {'Federated': ref('GithubOidc')}, 'Action': 'sts:AssumeRoleWithWebIdentity',
         'Condition': {'StringEquals': {'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com'},
                       'StringLike': {'token.actions.githubusercontent.com:sub': [
-                          'repo:jorgefprietol/devops-exercise:ref:refs/heads/master',
-                          'repo:jorgefprietol/devops-exercise:ref:refs/heads/develop',
-                          'repo:jorgefprietol/devops-exercise:ref:refs/tags/v*']}}}]),
+                          'repo:jorgefprietol@38570922/devops-exercise@1398598999:ref:refs/heads/master',
+                          'repo:jorgefprietol@38570922/devops-exercise@1398598999:ref:refs/heads/develop',
+                          'repo:jorgefprietol@38570922/devops-exercise@1398598999:ref:refs/tags/v*']}}}]),
         Policies=[{'PolicyName': 'DesplegarSoloEnServidor', 'PolicyDocument': document([
             policy('ssm:SendCommand', [instance_arns[0], sub('arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${DeployDocument}')]),
             policy('ssm:GetCommandInvocation', '*')])}])

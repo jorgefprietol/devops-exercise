@@ -597,9 +597,9 @@
                 },
                 "StringLike": {
                   "token.actions.githubusercontent.com:sub": [
-                    "repo:jorgefprietol/devops-exercise:ref:refs/heads/master",
-                    "repo:jorgefprietol/devops-exercise:ref:refs/heads/develop",
-                    "repo:jorgefprietol/devops-exercise:ref:refs/tags/v*"
+                    "repo:jorgefprietol@38570922/devops-exercise@1398598999:ref:refs/heads/master",
+                    "repo:jorgefprietol@38570922/devops-exercise@1398598999:ref:refs/heads/develop",
+                    "repo:jorgefprietol@38570922/devops-exercise@1398598999:ref:refs/tags/v*"
                   ]
                 }
               }
