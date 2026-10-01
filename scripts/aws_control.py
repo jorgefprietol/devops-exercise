@@ -1,8 +1,6 @@
 """Administracion de esta pila desde AWS CloudShell, sin claves permanentes."""
 import argparse
-from datetime import datetime, timedelta, timezone
 import json
-from pathlib import Path
 import re
 import subprocess
 import time
@@ -74,7 +72,9 @@ def main():
             ip = values['PublicIp']
             import ipaddress
             ipaddress.ip_address(ip)
-            commands = ['set -eu', 'test -f /opt/devops/bootstrap-completo', 'kubectl get nodes -o wide',
+            commands = ['set -eu',
+                'for n in $(seq 1 90); do test -f /opt/devops/bootstrap-completo && break; sleep 10; done',
+                'test -f /opt/devops/bootstrap-completo', 'kubectl get nodes -o wide',
                 '/opt/devops/certbot/bin/certbot certonly --standalone --non-interactive --agree-tos '
                 '--register-unsafely-without-email --preferred-profile shortlived --ip-address ' + ip]
         else:
