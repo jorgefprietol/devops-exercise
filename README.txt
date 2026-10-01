@@ -1,3 +1,7 @@
+JWT PARA EL EVALUADOR
+POST /auth/token permite obtener un JWT con una clave privada de evaluación, sin acceso a AWS.
+Consulta TOKEN.md y postman/DevOps_Emisor.postman_collection.json.
+
 EJERCICIO DEVOPS
 Jorge Fidel Prieto Linares
 

@@ -13,7 +13,7 @@ class EnvironmentConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             settings = {env: credentials(root, env, create=True) for env in ENVIRONMENTS}
-            for key in ('JWT_SECRET', 'REDIS_PASSWORD'):
+            for key in ('JWT_SECRET', 'REDIS_PASSWORD', 'ISSUER_KEY'):
                 self.assertEqual(3, len({value[key] for value in settings.values()}))
             for env in ENVIRONMENTS:
                 self.assertEqual(settings[env], credentials(root, env, create=True))

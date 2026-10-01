@@ -16,7 +16,7 @@ def config(local=False):
         {'name': 'jwt', 'config': {'header_names': ['Authorization'], 'uri_param_names': [],
          'cookie_names': [], 'key_claim_name': 'iss', 'claims_to_verify': ['exp', 'nbf']}}
     ]
-    return {
+    result = {
         '_format_version': '3.0',
         # Es global para alcanzar también el 405 generado por Nginx antes del
         # enrutamiento (TRACE). Solo normaliza errores; nunca refleja la petición.
@@ -41,3 +41,9 @@ def config(local=False):
              'strip_path': False, 'regex_priority': 0}
           ]}]
     }
+    if os.environ.get('ISSUER_KEY'):
+        result['services'].append({'name': 'evaluation-issuer', 'host': 'token-issuer', 'port': 8080,
+            'protocol': 'http', 'retries': 0, 'connect_timeout': 5000, 'read_timeout': 5000,
+            'write_timeout': 5000, 'routes': [{'name': 'evaluation-token',
+                'paths': ['~/auth/token$'], 'strip_path': False}]})
+    return result

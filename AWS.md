@@ -1,5 +1,7 @@
 # AWS: evaluación temporal de tres días
 
+Para obtener JWT por HTTPS sin CloudShell, consultar [TOKEN.md](TOKEN.md).
+
 La plantilla `infra/cloud/aws/template.json` crea dos EC2 t3.medium en zonas distintas, con Kubernetes K3s 1.34.12. Un nodo también aloja el plano de control. Kong y la API tienen réplicas en ambos nodos; Redis conserva los identificadores de transacción en un volumen local persistente. No es una arquitectura de producción con alta disponibilidad del plano de control o de Redis.
 
 ```mermaid

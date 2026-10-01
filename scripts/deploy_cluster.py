@@ -38,7 +38,7 @@ def main():
         for line in args.secrets_file.read_text(encoding='utf-8-sig').splitlines():
             if '=' in line and not line.startswith('#'):
                 key, value = line.split('=', 1)
-                if key in ('API_KEY', 'JWT_SECRET', 'REDIS_PASSWORD'):
+                if key in ('API_KEY', 'JWT_SECRET', 'REDIS_PASSWORD', 'ISSUER_KEY'):
                     env[key] = value
     for name in ('API_KEY', 'JWT_SECRET', 'REDIS_PASSWORD'):
         if not env.get(name):
@@ -65,10 +65,14 @@ def main():
     namespace = 'devops-' + args.environment
     for resource in ('statefulset/redis', 'deployment/devops-api', 'deployment/kong'):
         subprocess.run(command + ['-n', namespace, 'rollout', 'status', resource, '--timeout=300s'], env=env, check=True)
+    if env.get('ISSUER_KEY'):
+        subprocess.run(command + ['-n', namespace, 'rollout', 'status', 'deployment/token-issuer', '--timeout=300s'], env=env, check=True)
     report = verify_cluster(ROOT, env, namespace)
     if args.public_url:
         subprocess.run([sys.executable, str(ROOT / 'scripts/smoke.py'), args.public_url], env=env, check=True)
         report['https_publico'] = 'correcto'
+        if env.get('ISSUER_KEY'):
+            subprocess.run([sys.executable, str(ROOT / 'scripts/check_issuer.py'), args.public_url], env=env, check=True)
     private = ROOT / '.local'
     private.mkdir(exist_ok=True)
     (private / ('verificacion-' + args.environment + '.json')).write_text(

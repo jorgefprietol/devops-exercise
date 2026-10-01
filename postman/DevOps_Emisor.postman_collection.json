@@ -1,0 +1,117 @@
+{
+  "info": {
+    "name": "DevOps - JWT mediante endpoint",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Seleccionar un entorno privado con base_url (sin /DevOps) e issuer_key. Ejecutar las tres solicitudes en orden. No requiere jwt_secret. Ver TOKEN.md."
+  },
+  "item": [
+    {
+      "name": "1. Obtener JWT (200)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Evaluation-Key",
+            "value": "{{issuer_key}}"
+          }
+        ],
+        "url": "{{base_url}}/auth/token"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Emisión autenticada: 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) { const data = pm.response.json(); pm.environment.set(\"jwt\", data.token); pm.test(\"Vigencia: cinco minutos\", () => pm.expect(data.expires_in).to.eql(300)); } else { pm.environment.unset(\"jwt\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Enviar mensaje (200)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Parse-REST-API-Key",
+            "value": "2f5ae96c-b558-4c7b-a590-a501ae1c3f6c"
+          },
+          {
+            "key": "X-JWT-KWY",
+            "value": "{{jwt}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"This is a test\",\n  \"to\": \"Juan Perez\",\n  \"from\": \"Rita Asturia\",\n  \"timeToLifeSec\": 45\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/DevOps"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado: 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Contrato del ejercicio\", () => pm.expect(pm.response.json()).to.eql({message:\"Hello Juan Perez your message will be sent\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Reutilizar JWT (409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Parse-REST-API-Key",
+            "value": "2f5ae96c-b558-4c7b-a590-a501ae1c3f6c"
+          },
+          {
+            "key": "X-JWT-KWY",
+            "value": "{{jwt}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"This is a test\",\n  \"to\": \"Juan Perez\",\n  \"from\": \"Rita Asturia\",\n  \"timeToLifeSec\": 45\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/DevOps"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado: 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+from environment_config import ensure_issuer_key
 
 ROOT = Path(__file__).resolve().parents[1]
 PRIVATE = Path('/opt/devops/private')
@@ -33,6 +34,7 @@ def main():
     if not credentials.exists():
         credentials.write_text('API_KEY=2f5ae96c-b558-4c7b-a590-a501ae1c3f6c\nJWT_SECRET=' +
             secrets.token_hex(32) + '\nREDIS_PASSWORD=' + secrets.token_hex(32) + '\n')
+    ensure_issuer_key(credentials)
     ip = public_ip()
     cert = Path('/etc/letsencrypt/live') / ip
     if not (cert / 'fullchain.pem').exists():

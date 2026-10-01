@@ -39,6 +39,12 @@ def main():
         path = output / (name + '.postman_environment.json')
         path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         print('Entorno privado creado: ' + str(path))
+        if values.get('ISSUER_KEY'):
+            issuer_document = {**document, 'id': str(uuid.uuid4()), 'name': 'DevOps Emisor - ' + name,
+                'values': [document['values'][0],
+                    {'key': 'issuer_key', 'value': values['ISSUER_KEY'], 'type': 'secret', 'enabled': True}]}
+            (output / ('Emisor_' + name + '.postman_environment.json')).write_text(
+                json.dumps(issuer_document, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print('Estos archivos contienen secretos. No los publiques ni los compartas.')
 
 

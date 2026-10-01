@@ -50,6 +50,23 @@ class DeploymentPortabilityTests(unittest.TestCase):
             self.assertNotIn('loadBalancerClass', service['spec'])
             self.assertNotIn('annotations', service['metadata'])
 
+    def test_emisor_no_publica_puertos_ni_entrega_su_clave_a_la_api(self):
+        with self.settings(ISSUER_KEY='i' * 64):
+            service = self.manifest('Service', 'token-issuer')
+            self.assertNotIn('type', service['spec'])
+            issuer = self.manifest('Deployment', 'token-issuer')['spec']['template']['spec']
+            self.assertFalse(issuer['automountServiceAccountToken'])
+            self.assertNotIn('REDIS_CONNECTION', {v['name'] for v in issuer['containers'][0]['env']})
+            api = self.manifest('Deployment', 'devops-api')['spec']['template']['spec']
+            self.assertNotIn('ISSUER_KEY', {v['name'] for v in api['containers'][0]['env']})
+            policy = self.manifest('NetworkPolicy', 'issuer-only-from-kong')
+            self.assertEqual('kong', policy['spec']['ingress'][0]['from'][0]['podSelector']['matchLabels']['app'])
+
+    def test_emisor_no_admite_clave_compartida_con_la_firma(self):
+        with self.settings(ISSUER_KEY='j' * 32):
+            with self.assertRaises(ValueError):
+                self.manifest('Service', 'token-issuer')
+
 
 if __name__ == '__main__':
     unittest.main()

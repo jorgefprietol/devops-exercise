@@ -54,6 +54,7 @@ def main():
         run(compose + ['up', '-d', '--no-build', '--force-recreate', '--wait', '--wait-timeout', '180'])
     url = f'https://127.0.0.1:{args.port}'
     run([sys.executable, 'scripts/smoke.py', url, '--local'])
+    run([sys.executable, 'scripts/check_issuer.py', url, '--local'])
     # El certificado autofirmado solo se acepta en esta dirección de loopback.
     os.environ.update({key: env[key] for key in ('API_KEY', 'JWT_SECRET')})
     from smoke import token

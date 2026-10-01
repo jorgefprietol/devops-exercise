@@ -15,6 +15,16 @@ services:
     security_opt: [no-new-privileges:true]
   api2:
     <<: *api
+  token-issuer:
+    image: devops-api:local
+    environment:
+      SERVICE_ROLE: token-issuer
+      JWT_SECRET: ${JWT_SECRET:?Ejecuta scripts/init_local.py}
+      ISSUER_KEY: ${ISSUER_KEY:?Ejecuta scripts/init_local.py}
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
   redis:
     image: redis:7.4-alpine
     environment:
@@ -37,7 +47,7 @@ services:
       KONG_NGINX_WORKER_PROCESSES: '2'
     volumes: [./.local/kong.json:/kong/kong.json:ro]
     ports: ['127.0.0.1:${LAB_PORT:-8443}:8443']
-    depends_on: [api1, api2]
+    depends_on: [api1, api2, token-issuer]
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     healthcheck:

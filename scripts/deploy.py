@@ -105,6 +105,28 @@ def resources(env, image):
             'policyTypes': ['Ingress'], 'ingress': [{'from': [{'podSelector': {'matchLabels': {'app':'devops-api'}}}],
                 'ports': [{'protocol':'TCP','port':6379}]}]}, api='networking.k8s.io/v1')
     ]
+    issuer_key = os.environ.get('ISSUER_KEY')
+    if issuer_key:
+        if len(issuer_key.encode()) < 32 or issuer_key == signer:
+            raise ValueError('ISSUER_KEY debe ser independiente y tener al menos 32 bytes')
+        issuer_stamp = hashlib.sha256((issuer_key + signer).encode()).hexdigest()
+        result += [
+            obj('Secret', 'issuer-secrets', stringData={'ISSUER_KEY': issuer_key, 'JWT_SECRET': signer}),
+            obj('Service', 'token-issuer', {'selector': {'app': 'token-issuer'}, 'ports': [{'port': 8080}]}),
+            obj('Deployment', 'token-issuer', {
+                'replicas': 1, 'selector': {'matchLabels': {'app': 'token-issuer'}},
+                'strategy': {'type': 'Recreate'},
+                'template': {'metadata': {'labels': {'app': 'token-issuer'}, 'annotations': {'config-hash': issuer_stamp}},
+                    'spec': {'automountServiceAccountToken': False, 'containers': [{
+                        'name': 'issuer', 'image': image, 'securityContext': security,
+                        'ports': [{'containerPort': 8080}], 'resources': limits('50m', '64Mi'),
+                        'env': [envvar('SERVICE_ROLE', 'token-issuer')] + [
+                            {'name': key, 'valueFrom': {'secretKeyRef': {'name': 'issuer-secrets', 'key': key}}}
+                            for key in ('ISSUER_KEY', 'JWT_SECRET')],
+                        'livenessProbe': probe('/health/live', 8080), 'readinessProbe': probe('/health/ready', 8080)}]}}}, api='apps/v1'),
+            obj('NetworkPolicy', 'issuer-only-from-kong', {'podSelector': {'matchLabels': {'app': 'token-issuer'}},
+                'policyTypes': ['Ingress'], 'ingress': [{'from': [{'podSelector': {'matchLabels': {'app': 'kong'}}}],
+                    'ports': [{'protocol': 'TCP', 'port': 8080}]}]}, api='networking.k8s.io/v1')]
     storage_class = os.environ.get('STORAGE_CLASS', '').strip()
     if storage_class:
         redis = next(item for item in result if item['kind'] == 'StatefulSet')
