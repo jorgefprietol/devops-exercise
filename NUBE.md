@@ -1,6 +1,8 @@
 # Desplegar en otro equipo, AWS o Azure
 
-La aplicación y los manifiestos Kubernetes son portables. La infraestructura de la aplicación está en `scripts/deploy.py`; los perfiles de proveedor están en `infra/cloud/`. El repositorio no crea una cuenta cloud, una red ni un clúster EKS/AKS. Esos recursos deben existir y pueden generar cargos. La ejecución comprobada es Docker y Kubernetes local; los perfiles cloud tienen pruebas de configuración, sin una ejecución real en AWS/Azure.
+La aplicación y los manifiestos Kubernetes son portables. La infraestructura de la aplicación está en `scripts/deploy.py`; los perfiles de proveedor están en `infra/cloud/`. [AWS.md](AWS.md) describe la alternativa temporal con CloudFormation y dos EC2 ejecutando K3s, incluida la eliminación programada. Esta alternativa crea su propia red y clúster, y genera cargos.
+
+Las secciones EKS/AKS de este documento requieren clústeres administrados existentes; esos perfiles tienen pruebas de configuración y no equivalen a una ejecución comprobada en EKS o AKS. El repositorio no crea una cuenta cloud.
 
 ## Otro equipo sin una cuenta cloud
 
@@ -53,7 +55,7 @@ El perfil utiliza Azure Load Balancer y la clase `managed-csi` del controlador A
 
 ## Pipeline y alcance
 
-El pipeline incluido se ejecuta en GitHub Actions y despliega automáticamente en el laboratorio Kubernetes mediante el agente del propietario: master → production, develop → development y etiquetas → staging. La verificación del despliegue es local y no requiere Pinggy ni Cloudflare. El equipo y el agente deben estar encendidos.
+El pipeline incluido se ejecuta en GitHub Actions: master → production, develop → development y etiquetas → staging. Con `DEPLOY_TARGET=aws`, utiliza OIDC y Systems Manager para desplegar en el servidor de la pila descrita en AWS.md. Con otro valor utiliza el agente del laboratorio local; en ese caso el equipo y el agente deben estar encendidos. La prueba del clúster no requiere Pinggy ni Cloudflare.
 
 El comando de despliegue externo puede utilizarse desde un ejecutor con acceso autenticado a un clúster cloud. La identidad cloud, los permisos, el acceso de red y la conexión del pipeline a EKS/AKS deben configurarse en la cuenta de destino; no están provisionados ni verificados en este laboratorio. Para esa conexión se recomienda identidad federada OIDC con permisos mínimos, evitando claves permanentes.
 
